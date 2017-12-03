@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS `messagetable` (
 );
 
 CREATE TABLE IF NOT EXISTS `optintable` (
-        `userid` INT NOT NULL,
+        `userid` DOUBLE NOT NULL,
         PRIMARY KEY (`userid`)
 );
