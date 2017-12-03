@@ -28,10 +28,9 @@ bot.start();
 bot.on('text' ,(msg) => {
         var checkoptin = "SELECT COUNT(*) AS checkOptin FROM optintable where userid = " + hash(msg.from.id) + ";";
         db.query(checkoptin, function(err, rows){
-                console.log(util.inspect(rows[0].checkOptin,false,null));
                 if(rows[0].checkOptin==1){
-                        var sqlcmd = "INSERT INTO messagetable (msgid, userid, groupid, text, chattype) VALUES ?";
-                        var values = [[msg.message_id, hash(msg.from.id), msg.chat.id, msg.text, msg.chat.type]];
+                        var sqlcmd = "INSERT INTO messagetable (msgid, userid, groupid, text, chattype, time) VALUES ?";
+                        var values = [[msg.message_id, hash(msg.from.id), msg.chat.id, msg.text, msg.chat.type, msg.date]];
                         db.query(sqlcmd, [values], function(err, result){
                                 console.log("message added");
                         });
@@ -58,5 +57,19 @@ bot.on('/checklogging', (msg) => {
         let sqlcmd = "SELECT COUNT(*) AS logging FROM optintable where userid = " + hash(msg.from.id) + ";";
         db.query(sqlcmd, function(err, rows){
                 msg.reply.text("Your current status is: " + util.inspect(rows[0].logging,false,null));
+        });
+});
+
+bot.on('/amount', (msg) => {
+        let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable";
+        db.query(sqlcmd, function(err, rows){
+                msg.reply.text("Your current amount of msgs is: " + util.inspect(rows[0].amount,false,null));
+        });
+});
+
+bot.on('/ownamount', (msg) => {
+        let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
+        db.query(sqlcmd, function(err, rows){
+                msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null));
         });
 });
