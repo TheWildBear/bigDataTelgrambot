@@ -73,3 +73,10 @@ bot.on('/ownamount', (msg) => {
                 msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null));
         });
 });
+
+bot.on('/deletemymsgs', (msg) => {
+        let sqlcmd = "DELETE FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
+        db.query(sqlcmd, function(err, rows){
+                msg.reply.text("Your msgs have been deleted :(");
+        });
+});
