@@ -70,7 +70,7 @@ bot.on('/amount', (msg) => {
 });
 
 bot.on('/ownamount', (msg) => {
-        let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
+        let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable WHERE userid = " + hash(msg.from.id) + " AND `text` NOT LIKE '/%';";
         db.query(sqlcmd, function(err, rows){
                 msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null), { asReply: true });
         });
@@ -90,27 +90,40 @@ bot.on(['/start', '/help'], (msg) => {
 	msg.reply.text(startmsg);
 });
 
-
-bot.on(/^\/searchandcount (.+)$/, (msg, props) => {
-	let searchtext = props.match[1];
-	console.log(searchtext);
-	let sqlcmd = 'SELECT count(text) FROM messagetable WHERE text LIKE %'+ searchtext +'%;';
-	console.log(sqlcmd);
-	
-	/*db.query(sqlcmd, function(err, rows){
-		let answer = "The from you requested data is:\n" + rows[0];
-		msg.reply.text();
-	});*/
-});
-
-/*bot.on('/top', (msg) => {
-        let sqlcmd = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User` FROM `db`.`messagetable` AS `messagetable` WHERE `text` NOT LIKE '/%' GROUP BY `userid` ORDER BY `Msgs` DESC LIMIT 10;"
-	db.query(sqlcmd, function(err, rows){
-                let answer = "The from you requested data is:\n" + util.inspect(rows,false,null);
-                msg.reply.text();
-        });
+/*
+bot.on('/cmds', (msg) => {
+	let sqlcmd = "";
 });*/
 
+
+bot.on(/^\/count (.+)$/, (msg, props) => {
+	let searchtext
+	if(props.match[1]!=0)
+	{
+		searchtext = props.match[1];
+		let result = "";
+	        let sqlcmd = "SELECT count(text) as `Text` FROM messagetable WHERE text LIKE '%"+ searchtext +"%';";
+        	db.query(sqlcmd, function(err, rows){
+                	msg.reply.text("Your selected amount of msgs is: " + rows[0].Text, { asReply: true });
+	        });
+	}else{
+		msg.reply.text("Please supply a valid word to search!");
+	}
+});
+
+bot.on('/top', (msg) => {
+        let sqlcmd = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User` FROM `db`.`messagetable` AS `messagetable` WHERE `text` NOT LIKE '/%' GROUP BY `userid` ORDER BY `Msgs` DESC LIMIT 10;"
+	db.query(sqlcmd, function(err, rows){
+		let result = "";
+		for(var i in rows)
+		{
+			result = result + i + ". Positon" + "Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User;
+			result = result + "\n";
+		}
+		msg.reply.text(result);
+        });
+});
+
 bot.on('/licence', (msg) => {
-        msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\n \nCopyright 2017 TheWildBear\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.', { parseMode: 'markdown' });
+        msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\n \nCopyright 2017 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', { parseMode: 'markdown' });
 });
