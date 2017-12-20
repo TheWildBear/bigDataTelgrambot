@@ -101,7 +101,7 @@ bot.on(['/start', '/help'], (msg) => {
 bot.on(/^\/count (.+)$/, (msg, props) => {
 	let searchtext = "";
         let sqlcmd = "SELECT count(text) AS `text` FROM messagetable WHERE text LIKE ?";
-	var values = [[props.match[1]]];
+	var values = [["%" + props.match[1] + "%"]];
        	db.query(sqlcmd, [values], function(err, rows){
 		if (err) throw err;
 		msg.reply.text("Your selected amount of msgs is: " + rows[0].text, { asReply: true });
