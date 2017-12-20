@@ -16,7 +16,8 @@ var db = mysql.createConnection({
 	host: "localhost",
 	user: "your_user",
 	password: "your_pwd",
-	database: "db"
+	database: "db",
+	charset : 'utf8mb4'
 });
 
 db.connect(function(err) {
