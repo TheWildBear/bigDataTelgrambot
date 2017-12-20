@@ -28,6 +28,7 @@ bot.start();
 bot.on('text' ,(msg) => {
 	var checkoptin = "SELECT COUNT(*) AS checkOptin FROM optintable where userid = " + hash(msg.from.id) + ";";
 	db.query(checkoptin, function(err, rows){
+		if(err) throw err;
 		if(rows[0].checkOptin==1){
 			var sqlcmd = "INSERT INTO messagetable (msgid, userid, groupid, text, chattype) VALUES ?";
 		        var values = [[msg.message_id, hash(msg.from.id), msg.chat.id, msg.text, msg.chat.type]];
@@ -40,6 +41,7 @@ bot.on('/optin', (msg) => {
 	let sqlcmd = "INSERT INTO optintable (userid) VALUES ?";
 	var values = [[hash(msg.from.id)]];
 	db.query(sqlcmd, [values], function(err, result){
+		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text("You opted in for data collection!");
 	});
@@ -48,6 +50,7 @@ bot.on('/optin', (msg) => {
 bot.on('/optout', (msg) =>{
 	let sqlcmd = "DELETE FROM optintable WHERE userid = " + hash(msg.from.id) + ";";
 	db.query(sqlcmd, function(err, result){
+		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text("You opted out for data collection");
 	});
@@ -56,6 +59,7 @@ bot.on('/optout', (msg) =>{
 bot.on('/checklogging', (msg) => {
 	let sqlcmd = "SELECT COUNT(*) AS logging FROM optintable where userid = " + hash(msg.from.id) + ";";
 	db.query(sqlcmd, function(err, rows){
+		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text("Your current status is: " + util.inspect(rows[0].logging,false,null));
 	});
@@ -64,6 +68,7 @@ bot.on('/checklogging', (msg) => {
 bot.on('/amount', (msg) => {
         let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable";
         db.query(sqlcmd, function(err, rows){
+		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
                 msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount,false,null));
         });
@@ -72,13 +77,15 @@ bot.on('/amount', (msg) => {
 bot.on('/ownamount', (msg) => {
         let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable WHERE userid = " + hash(msg.from.id) + " AND `text` NOT LIKE '/%';";
         db.query(sqlcmd, function(err, rows){
+		if(err)throw err;
                 msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null), { asReply: true });
         });
 });
 
 bot.on('/deletemymsgs', (msg) => {
         let sqlcmd = "DELETE FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
-        db.query(sqlcmd, function(err, rows){
+        db.query(sqlcmd, function(err){
+		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
                 msg.reply.text("Your msgs have been deleted :(");
         });
@@ -90,30 +97,21 @@ bot.on(['/start', '/help'], (msg) => {
 	msg.reply.text(startmsg);
 });
 
-/*
-bot.on('/cmds', (msg) => {
-	let sqlcmd = "";
-});*/
-
 
 bot.on(/^\/count (.+)$/, (msg, props) => {
-	let searchtext
-	if(props.match[1]!=0)
-	{
-		searchtext = props.match[1];
-		let result = "";
-	        let sqlcmd = "SELECT count(text) as `Text` FROM messagetable WHERE text LIKE '%"+ searchtext +"%';";
-        	db.query(sqlcmd, function(err, rows){
-                	msg.reply.text("Your selected amount of msgs is: " + rows[0].Text, { asReply: true });
-	        });
-	}else{
-		msg.reply.text("Please supply a valid word to search!");
-	}
+	let searchtext = "";
+        let sqlcmd = "SELECT count(text) AS `text` FROM messagetable WHERE text LIKE ?";
+	var values = [[props.match[1]]];
+       	db.query(sqlcmd, [values], function(err, rows){
+		if (err) throw err;
+		msg.reply.text("Your selected amount of msgs is: " + rows[0].text, { asReply: true });
+        });
 });
 
 bot.on('/top', (msg) => {
         let sqlcmd = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User` FROM `db`.`messagetable` AS `messagetable` WHERE `text` NOT LIKE '/%' GROUP BY `userid` ORDER BY `Msgs` DESC LIMIT 10;"
 	db.query(sqlcmd, function(err, rows){
+		if(err) throw err;
 		let result = "";
 		for(var i in rows)
 		{
