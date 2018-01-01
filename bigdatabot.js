@@ -49,8 +49,9 @@ bot.on('/optin', (msg) => {
 });
 
 bot.on('/optout', (msg) =>{
-	let sqlcmd = "DELETE FROM optintable WHERE userid = " + hash(msg.from.id) + ";";
-	db.query(sqlcmd, function(err, result){
+	let sqlcmd = "DELETE FROM optintable WHERE userid = ?";
+	let values = [[hash(msg.from.id)]];
+	db.query(sqlcmd, [values], function(err, result){
 		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text("You opted out for data collection");
@@ -58,8 +59,9 @@ bot.on('/optout', (msg) =>{
 });
 
 bot.on('/checklogging', (msg) => {
-	let sqlcmd = "SELECT COUNT(*) AS logging FROM optintable where userid = " + hash(msg.from.id) + ";";
-	db.query(sqlcmd, function(err, rows){
+	let sqlcmd = "SELECT COUNT(*) AS logging FROM optintable where userid = ?";
+	let values = [[hash(msg.from.id)]];
+	db.query(sqlcmd, [values], function(err, rows){
 		if(err) throw err;
 		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text("Your current status is: " + util.inspect(rows[0].logging,false,null));
@@ -76,10 +78,11 @@ bot.on('/amount', (msg) => {
 });
 
 bot.on('/ownamount', (msg) => {
-        let sqlcmd = "SELECT COUNT(*) AS amount FROM messagetable WHERE userid = " + hash(msg.from.id) + " AND `text` NOT LIKE '/%';";
+	bot.sendAction(msg.chat.id, 'typing');
+        let sqlcmd = "SELECT COUNT(*) AS amount, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE userid = " + hash(msg.from.id) + " AND `text` NOT LIKE '/%';";
         db.query(sqlcmd, function(err, rows){
 		if(err)throw err;
-                msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null), { asReply: true });
+                msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null) + " and the AVG_length is: " + rows[0].AVG_Length, { asReply: true });
         });
 });
 
@@ -93,13 +96,14 @@ bot.on('/deletemymsgs', (msg) => {
 });
 
 bot.on(['/start', '/help'], (msg) => {
-	let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/amount (total amount of messages collected)\n/ownamount (number of your collected messages)\n/deletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP. S. All data is anonymized";
+	let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/amount (total amount of messages collected)\n/ownamount (number of your collected messages)\n/deletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized";
 	bot.deleteMessage(msg.chat.id, msg.message_id);
 	msg.reply.text(startmsg);
 });
 
 
 bot.on(/^\/count (.+)$/, (msg, props) => {
+	bot.sendAction(msg.chat.id, 'typing');
 	let searchtext = "";
         let sqlcmd = "SELECT count(text) AS `text` FROM messagetable WHERE text LIKE ?";
 	var values = [["%" + props.match[1] + "%"]];
@@ -110,13 +114,14 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
 });
 
 bot.on('/top', (msg) => {
-        let sqlcmd = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User` FROM `db`.`messagetable` AS `messagetable` WHERE `text` NOT LIKE '/%' GROUP BY `userid` ORDER BY `Msgs` DESC LIMIT 10;"
+	bot.sendAction(msg.chat.id, 'typing');
+        let sqlcmd = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM `db`.`messagetable` AS `messagetable` WHERE `text` NOT LIKE '/%' GROUP BY `userid` ORDER BY `Msgs` DESC LIMIT 10;"
 	db.query(sqlcmd, function(err, rows){
 		if(err) throw err;
 		let result = "";
 		for(var i in rows)
 		{
-			result = result + i + ". Positon" + "Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User;
+			result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
 			result = result + "\n";
 		}
 		msg.reply.text(result);
