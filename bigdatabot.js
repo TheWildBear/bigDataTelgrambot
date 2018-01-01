@@ -3,6 +3,11 @@
  */
 
 /*jshint esversion: 6 */
+
+/*
+Version 1.0.0
+*/
+
 const Telebot = require('telebot');
 const bot = new Telebot({
 	token: 'your_token',
