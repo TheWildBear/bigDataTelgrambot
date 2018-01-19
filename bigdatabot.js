@@ -7,10 +7,11 @@
 /*
  *Version 1.0.2
  */
+var config = require('./config');
 const version = "1.0.2";
 const Telebot = require('telebot');
 const bot = new Telebot({
-	token: 'your_token',
+	token: config.bottoken,
 	limit: 1000});
 const util = require('util');
 const mysql = require('mysql'); 
@@ -21,18 +22,18 @@ var admin = 8846643;
 var log;
 var db = mysql.createPool({
 	connectionLimit : 100,
-	host: "localhost",
-	user: "your_user",
-	password: "your_pwd",
+	host: config.dbreaduserhost,
+	user: config.dbreaduser,
+	password: config.dbreaduserpwd,
 	database: "db",
 	charset : 'utf8mb4'
 });
 
 var dbwrite = mysql.createPool({
 	connectionLimit : 100,
-        host: "localhost",
-        user: "your_user",
-        password: "your_pwd",
+        host: config.dbwriteuserhost,
+        user: config.dbwriteuser,
+        password: config.dbwriteuserpwd,
         database: "db",
         charset : 'utf8mb4'
 });
