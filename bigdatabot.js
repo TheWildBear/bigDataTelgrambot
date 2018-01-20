@@ -256,9 +256,9 @@ bot.on('/top', (msg) => {
 				let user = "";
 				if(rows[i].Username != null)
 				{
-					user = " [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
+					user = ". [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
 				}else{
-					user = " " + rows[i].User;
+					user = ". " + rows[i].User;
 				}
 				result = result + i + user + " | Messages#: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
 				result = result + "\n";
@@ -289,9 +289,9 @@ bot.on('/top1week', (msg) => {
 				let user = "";
                                 if(rows[i].Username != null)
                                 {
-                                        user = " [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
+                                        user = ". [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
                                 }else{
-                                        user = " " + rows[i].User;
+                                        user = ". " + rows[i].User;
                                 }
                                 result = result + i + user + " | Messages#: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
                                 result = result + "\n";
