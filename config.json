@@ -1,9 +1,9 @@
 {
-        "dbwriteuserhost":"192.168.1.108",
-        "dbwriteuser":"thewildbear",
-        "dbwriteuserpwd":"IfdKL1sgF!",
-        "dbreaduserhost":"192.168.1.108",
-        "dbreaduser":"thewildbear",
-        "dbreaduserpwd":"IfdKL1sgF!",
-        "bottoken":"505571144:AAGrRXvHHPCLyTf5Srn1LKl9wVgo1JRaFac"
+        "dbwriteuserhost":"DB_IP",
+        "dbwriteuser":"DB_USER",
+        "dbwriteuserpwd":"DB_PWD",
+        "dbreaduserhost":"DB_IP",
+        "dbreaduser":"DB_USER",
+        "dbreaduserpwd":"DB_PWD",
+        "bottoken":"your_token"
 }
