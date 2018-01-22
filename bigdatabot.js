@@ -202,6 +202,7 @@ bot.on('/iwanttodeletemymsgs', (msg) => {
 			if(logging == 1){console.log("Messages deleted!");}
 			bot.deleteMessage(msg.chat.id, msg.message_id);
 	                msg.reply.text("Your msgs have been deleted :(");
+			connection.release();
         	});
 	});
 });
@@ -217,8 +218,8 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
         	        if (err) throw err;
 			if(logging == 1){console.log(util.inspect(rows[0].AVG_Length,false,null));}
                 	msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true });
+			connection.release();
 	        });
-		connection.release();
 	});
 });
 
@@ -233,8 +234,8 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
                         if (err) throw err;
 			if(logging == 1){console.log(util.inspect(rows[0].AVG_Length,false,null));}
 			msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true });
+                	connection.release();
                 });
-                connection.release();
         });
 });
 
@@ -264,7 +265,13 @@ bot.on('/top', (msg) => {
 				result = result + "\n";
 			}
 			result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
-			msg.reply.text(result, { parseMode: 'markdown' });
+			bot.deleteMessage(msg.chat.id, msg.message_id);
+			msg.reply.text(result, { parseMode: 'markdown' }).then(function(msg)
+			{
+				setTimeout(function(){
+					bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+				}, 60000);
+			});
 			connection.release();
 			if(logging == 1){console.log(result);}
 	        });
