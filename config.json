@@ -1,0 +1,9 @@
+{
+        "dbwriteuserhost":"DB_IP",
+        "dbwriteuser":"DB_USER",
+        "dbwriteuserpwd":"DB_PWD",
+        "dbreaduserhost":"DB_IP",
+        "dbreaduser":"DB_USER",
+        "dbreaduserpwd":"DB_PWD",
+        "bottoken":"your_token"
+}

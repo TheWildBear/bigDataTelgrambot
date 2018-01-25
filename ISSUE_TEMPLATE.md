@@ -1,2 +1,2 @@
-The following message/command crashes the bot:
+The following function is missing/bothering/should be altered me.
 
