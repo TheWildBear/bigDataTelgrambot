@@ -309,7 +309,10 @@ bot.on('/top', (msg) => {
 					result = result + "\n";
 				}
 				result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
-				bot.deleteMessage(msg.chat.id, msg.message_id);
+				if(msg.chat.type!="private")
+				{
+					bot.deleteMessage(msg.chat.id, msg.message_id);
+				}
 				msg.reply.text(result, { parseMode: 'markdown' }).then(function(msg)
 				{
 					setTimeout(function(){
@@ -351,8 +354,11 @@ bot.on('/toptoday', (msg) => {
                                         result = result + "\n";
                                 }
                                 result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
-                                bot.deleteMessage(msg.chat.id, msg.message_id);
-                                msg.reply.text(result, { parseMode: 'markdown' }).then(function(msg)
+                                if(msg.chat.type!="private")
+                                {
+                                        bot.deleteMessage(msg.chat.id, msg.message_id);
+                                }
+				msg.reply.text(result, { parseMode: 'markdown' }).then(function(msg)
                                 {
                                         setTimeout(function(){
                                                 bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
