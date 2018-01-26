@@ -249,7 +249,7 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
         {
 	        bot.sendAction(msg.chat.id, 'typing');
         	let searchtext = "";
-	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ?";
+	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ? AND `text` NOT LIKE '/%';";
         	var values = [["%" + props.match[1] + "%"]];
 		db.getConnection(function(err, connection) {
 		        connection.query(sqlcmd, [values], function(err, rows){
@@ -268,7 +268,7 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
         {
 	        bot.sendAction(msg.chat.id, 'typing');
         	let searchtext = "";
-	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ? AND (time < (now() - INTERVAL 1 WEEK))";
+	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ? AND (time < (now() - INTERVAL 1 WEEK)) AND `text` NOT LIKE '/%';";
         	var values = [["%" + props.match[1] + "%"]];
 	        db.getConnection(function(err, connection) {
         	        connection.query(sqlcmd, [values], function(err, rows){
