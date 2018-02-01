@@ -7,6 +7,7 @@
 /*
  *Version 1.0.2
  */
+
 var config = require('./config');
 const version = "1.0.2";
 const Telebot = require('telebot');
@@ -39,10 +40,6 @@ var dbwrite = mysql.createPool({
 });
 
 var botname = "bigdatabot";
-
-/*
-	bot.getMe().then(function(user){console.log(username);})
-*/
 
 bot.start();
 
@@ -249,7 +246,7 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
         {
 	        bot.sendAction(msg.chat.id, 'typing');
         	let searchtext = "";
-	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ? AND `text` NOT LIKE '/%';";
+	        let sqlcmd = "SELECT count(text) AS `text`, truncate(avg(char_length( `text` )),2) AS AVG_Length FROM messagetable WHERE text LIKE ?;";
         	var values = [["%" + props.match[1] + "%"]];
 		db.getConnection(function(err, connection) {
 		        connection.query(sqlcmd, [values], function(err, rows){
