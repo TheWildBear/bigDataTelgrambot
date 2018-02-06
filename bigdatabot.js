@@ -9,7 +9,7 @@
  */
 
 var config = require('./config');
-const version = "1.0.2";
+const version = '1.0.3';
 const Telebot = require('telebot');
 const bot = new Telebot({
 	token: config.bottoken,
@@ -26,7 +26,7 @@ var db = mysql.createPool({
 	host: config.dbreaduserhost,
 	user: config.dbreaduser,
 	password: config.dbreaduserpwd,
-	database: "db",
+	database: 'db',
 	charset : 'utf8mb4'
 });
 
@@ -35,7 +35,7 @@ var dbwrite = mysql.createPool({
         host: config.dbwriteuserhost,
         user: config.dbwriteuser,
         password: config.dbwriteuserpwd,
-        database: "db",
+        database: 'db',
         charset : 'utf8mb4'
 });
 
@@ -46,19 +46,28 @@ bot.start();
 bot.sendMessage(admin, "Bot started with version: " + version + " at: " + Date());
 
 bot.on('text' ,(msg) => {
-	var checkoptin = "SELECT COUNT(*) AS checkOptin FROM optintable where userid = " + hash(msg.from.id) + ";";
+	var checkoptin = "SELECT count(*) AS checkOptin, state AS state FROM optintable where userid = " + hash(msg.from.id) + ";";
 	dbwrite.getConnection(function(err, connection){
 		connection.query(checkoptin, function(err, rows){
 			if(err) throw err;
 			if(rows[0].checkOptin==1){
-				var sqlcmd = "INSERT INTO messagetable (msgid, userid, groupid, text, chattype) VALUES ?";
-		        	var values = [[msg.message_id, hash(msg.from.id), msg.chat.id, msg.text, msg.chat.type]];
+				if(rows[0].state == 0)
+				{
+					var sqlcmd = "INSERT INTO messagetable (text) VALUES ?";
+					var values = [[msg.text]];
+				}
+				if(rows[0].state == 1 || rows[0].state == 2)
+				{
+					var sqlcmd = "INSERT INTO messagetable (msgid, userid, groupid, text, chattype) VALUES ?";
+                                        var values = [[msg.message_id, hash(msg.from.id), msg.chat.id, msg.text, msg.chat.type]];
+				}
 				if(logging == 1){console.log("messageid: " + msg.messageid + " userid: " + hash(msg.from.id) + " chatid: " + msg.chat.id + " message_text: " + msg.text + " chattype: " + msg.chat.type);}
 	        		connection.query(sqlcmd, [values]);
 			}
 			connection.release();
 		});
 	});
+	
 });
 
 //updates userinformation
@@ -72,58 +81,89 @@ bot.on('/updateuserinfo', (msg) => {
                 	db.query(sqlcmd, values, function(err, result){
                         	if(err) throw err;
 	                        //bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your User infos have been updated", { asReply: true });
+				msg.reply.text("Your User infos have been updated", { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
                 	        connection.release();
 	                });
         	});
 	}
 });
 
-//updates userinformation
-bot.on('/deleteuserinfo', (msg) => {
-	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/deleteuserinfo'))
-        {
-	        let sqlcmd = "UPDATE optintable SET username = null WHERE userid = ?";
-        	var values = [hash(msg.from.id)];
-		if(logging == 1){console.log(values);}
-        	dbwrite.getConnection(function(err, connection){
-	                db.query(sqlcmd, values, function(err, result){
-        	                if(err) throw err;
-                	        //bot.deleteMessage(msg.chat.id, msg.message_id);
-                        	msg.reply.text("Your User infos have been updated", { asReply: true });
-	                        connection.release();
-        	        });
-	        });
-	}
-});
-
-bot.on('/userinfo', (msg) => {
-	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/userinfo'))
-        {
-		bot.getChatMember(msg.chat.id,msg.from.id).then(function (data)
-		{
-			if(logging == 1){console.log(util.inspect(data,true,null));}
-			msg.reply.text(util.inspect(data,true,null), { asReply: true });
-		});
-	}
-});
-
 bot.on('/optin', (msg) => {
+	msg.reply.text("When you use /optin0 only the text of the msg you write gets logged.\nWhen you use /optin1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use /optin2 additonally to /optin1 you're username is safed for use in /top commands");
+});
+
+bot.on('/optin0', (msg) => {
 	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/optin'))
         {
 		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "INSERT IGNORE INTO optintable (userid) VALUES ?";
-		var values = [[hash(msg.from.id)]];
+		let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
+		var values = [[hash(msg.from.id), 0, null]];
 		if(logging == 1){console.log(values);}
 		dbwrite.getConnection(function(err, connection){
 			db.query(sqlcmd, [values], function(err, result){
 				if(err) throw err;
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted in for data collection!", { asReply: true });
+				msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 			});
 		});
 	}
+});
+
+bot.on('/optin1', (msg) => {
+        if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/optin'))
+        {
+                bot.sendAction(msg.chat.id, 'typing');
+                let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
+                var values = [[hash(msg.from.id), 1, null]];
+                if(logging == 1){console.log(values);}
+                dbwrite.getConnection(function(err, connection){
+                        db.query(sqlcmd, [values], function(err, result){
+                                if(err) throw err;
+                                bot.deleteMessage(msg.chat.id, msg.message_id);
+                                msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
+                                connection.release();
+                        });
+                });
+        }
+});
+
+bot.on('/optin2', (msg) => {
+        if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/optin'))
+        {
+                bot.sendAction(msg.chat.id, 'typing');
+                let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
+                var values = [[hash(msg.from.id), 2, msg.from.username]];
+                if(logging == 1){console.log(values);}
+                dbwrite.getConnection(function(err, connection){
+                        db.query(sqlcmd, [values], function(err, result){
+                                if(err) throw err;
+                                bot.deleteMessage(msg.chat.id, msg.message_id);
+                                msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
+                                connection.release();
+                        });
+                });
+        }
 });
 
 bot.on('/optout', (msg) =>{
@@ -137,7 +177,12 @@ bot.on('/optout', (msg) =>{
 			connection.query(sqlcmd, [values], function(err, result){
 				if(err) throw err;
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted out for data collection", { asReply: true });
+				msg.reply.text("You opted out for data collection", { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 			});
 		});
@@ -148,14 +193,19 @@ bot.on('/checklogging', (msg) => {
 	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/checklogging'))
         {
 		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "SELECT COUNT(*) AS logging FROM optintable where userid = ?";
+		let sqlcmd = "SELECT COUNT(*) AS logging, state AS state FROM optintable where userid = ?";
 		let values = [[hash(msg.from.id)]];
 		if(logging == 1){console.log(values);}
 		db.getConnection(function(err, connection) {
 			connection.query(sqlcmd, [values], function(err, rows){
 				if(err) throw err;
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your current status is: " + util.inspect(rows[0].logging,false,null), { asReply: true });
+				msg.reply.text("Your current status is: " + util.inspect(rows[0].logging,false,null) + " with the logging level of: " + rows[0].state, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 			});
 		});
@@ -173,7 +223,12 @@ bot.on('/total_amount', (msg) => {
 				if(err) throw err;
 				if(logging == 1){console.log(util.inspect(rows[0].amount,false,null));}
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-	        	        msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount,false,null), { asReply: true });
+	        	        msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount,false,null), { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 	        	});
 		});
@@ -193,7 +248,12 @@ bot.on('/total_ownamount', (msg) => {
         		connection.query(sqlcmd, function(err, rows){
 				if(err)throw err;
 				if(logging == 1){console.log(util.inspect(rows[0].amount,false,null));}
-                		msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null) + " and the AVG_length is: " + rows[0].AVG_Length, { asReply: true });
+                		msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null) + " and the AVG_length is: " + rows[0].AVG_Length, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 		        });
 		});
@@ -215,7 +275,12 @@ bot.on('/ownamount', (msg) => {
 		        connection.query(sqlcmd, function(err, rows){
         		        if(err)throw err;
 				if(logging == 1){console.log(util.inspect(rows[0].amount,false,null));}
-        	        	msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null) + " and the AVG_length is: " + rows[0].AVG_Length, { asReply: true });
+        	        	msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount,false,null) + " and the AVG_length is: " + rows[0].AVG_Length, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 		        });
 		});
@@ -252,7 +317,12 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
 		        connection.query(sqlcmd, [values], function(err, rows){
         		        if (err) throw err;
 				if(logging == 1){console.log(util.inspect(rows[0].AVG_Length,false,null));}
-	                	msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true });
+	                	msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 	        	});
 		});
@@ -271,7 +341,12 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
         	        connection.query(sqlcmd, [values], function(err, rows){
                 	        if (err) throw err;
 				if(logging == 1){console.log(util.inspect(rows[0].AVG_Length,false,null));}
-				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true });
+				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
         	        	connection.release();
                 	});
 	        });
@@ -396,7 +471,12 @@ bot.on('/top1week', (msg) => {
         	                        result = result + "\n";
                 	        }
                         	result = result + "\nIf you want you're name to show up use: /updateuserinfo";
-	                        msg.reply.text(result, { parseMode: 'markdown', asReply: true });
+	                        msg.reply.text(result, { parseMode: 'markdown', asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
         	                connection.release();
 				if(logging == 1){console.log(result);}
         	        });
@@ -425,7 +505,12 @@ bot.on('/topingroup', (msg) => {
 	                	        result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
         	                	result = result + "\n";
 		                }
-        		        msg.reply.text(result, { asReply: true });
+        		        msg.reply.text(result, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
 				connection.release();
 				if(logging == 1){console.log(result);}
 	        	});	
@@ -454,7 +539,12 @@ bot.on('/topingroup1week', (msg) => {
         	                        result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
                 	                result = result + "\n";
 	                        }
-        	                msg.reply.text(result, { asReply: true });
+        	                msg.reply.text(result, { asReply: true }).then(function(msg)
+                                {
+                                        setTimeout(function(){
+                                                bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
+                                        }, 60000);
+                                });
                 	        connection.release();
 				if(logging == 1){console.log(result);}
 	                });
@@ -500,6 +590,9 @@ bot.on('/info', (msg,data,props) => {
 	}
 });
 
+bot.on('error', (error) => {
+	console.log(util.inspect(error,true,99));
+});
 
 
 
