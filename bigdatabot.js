@@ -18,7 +18,9 @@ const util = require('util');
 const mysql = require('mysql'); 
 const hash = require('hash-int');
 const fs = require('fs');
-const logging = 0; //enables logging
+const sha1 = require('sha1');
+const crypto = require('crypto');
+var logging = 0;
 var admin = 8846643;
 var log;
 var db = mysql.createPool({
@@ -377,8 +379,7 @@ bot.on('/top', (msg) => {
 					}else{
 						user = ". " + rows[i].User;
 					}
-					result = result + i + user + " | Messages#: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
-					result = result + "\n";
+					result = result + i + user + " | Messages: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length + "\n";
 				}
 				result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
 				if(msg.chat.type!="private")
@@ -567,9 +568,8 @@ bot.on(['/start', '/help'], (msg) => {
 	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/start')||msg.text.split(' ')[0].endsWith('/help'))
         {
 		let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/total_amount (total amount of messages collected)\n/total_ownamount (number of your collected messages)\n/iwanttodeletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized";
-		bot.deleteMessage(msg.chat.id, msg.message_id);
 		msg.reply.text(startmsg, { asReply: true });
-		if(logging == 1){console.log("/start & /help sent");}
+		if(logging == 1){console.log("/start || /help sent");}
 	}
 });
 
@@ -594,5 +594,103 @@ bot.on('error', (error) => {
 	console.log(util.inspect(error,true,99));
 });
 
+bot.on('reconnecting', (reconnecting) => {
+	console.log(util.inspect(reconnecting,true,99));
+	console.log("connection lost at: " + Date());
+});
+
+bot.on('reconnected', (reconnected) => {
+        console.log(util.inspect(reconnected,true,99));
+        console.log("connection successfully rebuilt at: " + Date());
+});
+
+bot.on('/getdata', (msg) => {
+	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
+        let FROM = " FROM messagetable AS `messagetable`";
+        let sqlcmd = SELECT + FROM;
+	msg.reply.text("The data is gathered and saved!");
+	db.getConnection(function(err, connection) {
+                        connection.query(sqlcmd, function(err, rows){
+                                if(err) throw err;
+				//var result = "The msgs are:\n";
+				var csv = "Counter,Message,User,Text,Time\n";
+				var myjson = {};
+				var data = {};
+				let text = "";
+                                for(var i in rows)
+                                {
+					/*try{
+					rows[i].Text.split(" ").forEach(function(data){data = data + "1"; text = text + sha1(data) + " "});}
+					catch(err){throw err}*/
+					myjson[i] = [];
+					data = {
+						Message: rows[i].Msgs,
+						User: rows[i].User,
+						Text: rows[i].Text,
+						Time: rows[i].Time
+					}
+					myjson[i].push(data);
+					csv = csv + i + "," + rows[i].Msgs + "," + rows[i].User + "," + rows[i].Text + "," + rows[i].Time + "\n";
+					text  = "";
+                                }
+				var jsonstream = fs.createWriteStream("./upload/output" + Date.now() + ".json");
+				jsonstream.once('open', function(fd) {
+					jsonstream.end(JSON.stringify(myjson));
+				});
+				var csvstream = fs.createWriteStream("./upload/output" + Date.now() + ".csv");
+				csvstream.once('open', function(fd) {
+                                        csvstream.end(csv);
+                                });
+				msg.reply.text("Data exported!");
+                                connection.release();
+                                if(logging == 1){console.log(result);}
+                        });
+                });
+});
+
+
+bot.on('/getdataperday', (msg) => {
+	let SELECT = "SELECT `msgid` AS `Msgs`, DATE(`time`) AS `Time`";
+        let FROM = " FROM messagetable AS `messagetable`";
+	let GROUP = "GROUP BY DAY(`time`)";
+        let sqlcmd = SELECT + FROM + GROUP;
+	msg.reply.text("The data is gathered and saved!");
+	db.getConnection(function(err, connection) {
+                        connection.query(sqlcmd, function(err, rows){
+                                if(err) throw err;
+				//var result = "The msgs are:\n";
+				var csv = "Messages,Time\n";
+				var myjson = {};
+				var data = {};
+				let text = "";
+                                for(var i in rows)
+                                {
+					/*try{
+					rows[i].Text.split(" ").forEach(function(data){data = data + "1"; text = text + sha1(data) + " "});
+					}
+					catch(err){throw err}*/
+					myjson[rows[i].Time] = [];
+					data = {
+						Messages: rows[i].Msgs,
+					}
+					//console.log(util.inspect(data,true,99));
+					myjson[rows[i].Time].push(data);
+					csv = csv + i + "," + rows[i].Msgs + "," + rows[i].Time + "\n";
+					text = "";
+                                }
+				var jsonstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".json");
+				jsonstream.once('open', function(fd) {
+					jsonstream.end(JSON.stringify(myjson));
+				});
+				var csvstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".csv");
+				csvstream.once('open', function(fd) {
+                                        csvstream.end(csv);
+                                });
+				msg.reply.text("Data exported!");
+                                connection.release();
+                                if(logging == 1){console.log(result);}
+                        });
+                });
+});
 
 
