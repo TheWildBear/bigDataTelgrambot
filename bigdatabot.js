@@ -557,7 +557,7 @@ bot.on('/topingroup1week', (msg) => {
 bot.on('/license', (msg) => {
 	if(msg.text.split(' ')[0].endsWith(botname)||msg.text.split(' ')[0].endsWith('/license'))
         {
-	        msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\n \nCopyright 2017 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', { parseMode: 'markdown', asReply: true });
+	        msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\nCheckout the repo at:\nhttps://github.com/TheWildBear/bigDataTelgrambot\n\nCopyright 2017 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', { parseMode: 'markdown', asReply: true });
 		if(logging == 1){console.log("License sent");}
 	}
 });
