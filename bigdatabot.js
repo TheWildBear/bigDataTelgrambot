@@ -9,7 +9,7 @@
  */
 
 var config = require('./config');
-const version = '1.0.3';
+const version = '1.0.3.1';
 const Telebot = require('telebot');
 const bot = new Telebot({
 	token: config.bottoken,
@@ -20,6 +20,7 @@ const hash = require('hash-int');
 const fs = require('fs');
 const sha1 = require('sha1');
 const crypto = require('crypto');
+const HashTable = require('hashtable');
 var logging = 0;
 var admin = 8846643;
 var log;
@@ -34,11 +35,11 @@ var db = mysql.createPool({
 
 var dbwrite = mysql.createPool({
 	connectionLimit : 100,
-        host: config.dbwriteuserhost,
-        user: config.dbwriteuser,
-        password: config.dbwriteuserpwd,
-        database: 'db',
-        charset : 'utf8mb4'
+	host: config.dbwriteuserhost,
+	user: config.dbwriteuser,
+	password: config.dbwriteuserpwd,
+	database: 'db',
+	charset : 'utf8mb4'
 });
 
 var botname = "bigdatabot";
@@ -80,10 +81,9 @@ bot.on('/updateuserinfo', (msg) => {
 		var values = [msg.from.username, hash(msg.from.id)];
 		if(logging == 1){console.log(values);}
 		dbwrite.getConnection(function(err, connection){
-                	db.query(sqlcmd, values, function(err, result){
+                	connection.query(sqlcmd, values, function(err, result){
                         	if(err) throw err;
-	                        //bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your User infos have been updated", { asReply: true }).then(function(msg)
+                        	msg.reply.text("Your User infos have been updated", { asReply: true }).then(function(msg)
                                 {
                                         setTimeout(function(){
                                                 bot.deleteMessage(msg.result.chat.id,msg.result.message_id);
@@ -96,7 +96,7 @@ bot.on('/updateuserinfo', (msg) => {
 });
 
 bot.on('/optin', (msg) => {
-	msg.reply.text("When you use /optin0 only the text of the msg you write gets logged.\nWhen you use /optin1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use /optin2 additonally to /optin1 you're username is safed for use in /top commands");
+	msg.reply.text("When you use /optin0 only the text of the msg you write gets logged.\nWhen you use /optin1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use /optin2 additonally to /optin1 your username is safed for use in /top commands");
 });
 
 bot.on('/optin0', (msg) => {
@@ -107,7 +107,7 @@ bot.on('/optin0', (msg) => {
 		var values = [[hash(msg.from.id), 0, null]];
 		if(logging == 1){console.log(values);}
 		dbwrite.getConnection(function(err, connection){
-			db.query(sqlcmd, [values], function(err, result){
+			connection.query(sqlcmd, [values], function(err, result){
 				if(err) throw err;
 				bot.deleteMessage(msg.chat.id, msg.message_id);
 				msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
@@ -130,7 +130,7 @@ bot.on('/optin1', (msg) => {
                 var values = [[hash(msg.from.id), 1, null]];
                 if(logging == 1){console.log(values);}
                 dbwrite.getConnection(function(err, connection){
-                        db.query(sqlcmd, [values], function(err, result){
+                        connection.query(sqlcmd, [values], function(err, result){
                                 if(err) throw err;
                                 bot.deleteMessage(msg.chat.id, msg.message_id);
                                 msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
@@ -153,7 +153,7 @@ bot.on('/optin2', (msg) => {
                 var values = [[hash(msg.from.id), 2, msg.from.username]];
                 if(logging == 1){console.log(values);}
                 dbwrite.getConnection(function(err, connection){
-                        db.query(sqlcmd, [values], function(err, result){
+                        connection.query(sqlcmd, [values], function(err, result){
                                 if(err) throw err;
                                 bot.deleteMessage(msg.chat.id, msg.message_id);
                                 msg.reply.text("You opted in for data collection!", { asReply: true }).then(function(msg)
@@ -630,6 +630,7 @@ bot.on('/getdata', (msg) => {
 						Time: rows[i].Time
 					}
 					myjson[i].push(data);
+					myjson[i].push();
 					csv = csv + i + "," + rows[i].Msgs + "," + rows[i].User + "," + rows[i].Text + "," + rows[i].Time + "\n";
 					text  = "";
                                 }
@@ -678,11 +679,11 @@ bot.on('/getdataperday', (msg) => {
 					csv = csv + i + "," + rows[i].Msgs + "," + rows[i].Time + "\n";
 					text = "";
                                 }
-				var jsonstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".json");
+				let jsonstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".json");
 				jsonstream.once('open', function(fd) {
 					jsonstream.end(JSON.stringify(myjson));
 				});
-				var csvstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".csv");
+				let csvstream = fs.createWriteStream("./upload/outputperday" + Date.now() + ".csv");
 				csvstream.once('open', function(fd) {
                                         csvstream.end(csv);
                                 });
@@ -691,6 +692,46 @@ bot.on('/getdataperday', (msg) => {
                                 if(logging == 1){console.log(result);}
                         });
                 });
+});
+
+
+bot.on('/wordlist', (msg) => {
+	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
+    let FROM = " FROM messagetable AS `messagetable`";
+    let sqlcmd = SELECT + FROM;
+	db.getConnection(function(err, connection) {
+                        connection.query(sqlcmd, function(err, rows){
+                                if(err) throw err;
+				var hashtable = new HashTable();
+				let texttowordlist;
+				let amount;
+				let output = "Word,Times\n";
+				for(var i in rows)
+				{
+					rows[i].Text.replace(/(\.|,|\?|!)/g,'').split(" ").forEach(function(data)
+					//rows[i].Text.split("").forEach(function(data)
+					{
+						if(hashtable.get(data)===undefined)
+						{
+							amount = 1;
+						}
+						else
+						{
+							amount = hashtable.get(data) + 1;
+						}
+						hashtable.put(data, amount);
+					});	
+				}
+				let keys = hashtable.keys();
+				keys.forEach((data) => {
+					output += data + "," + hashtable.get(data) + "\n";
+				});
+				let outputstream = fs.createWriteStream("./upload/wordlist" + Date.now() + ".csv");
+				outputstream.once('open', function(fd) {
+					outputstream.end(output);
+				});
+			});
+	});
 });
 
 
