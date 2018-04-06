@@ -634,14 +634,15 @@ bot.on('/getdata', (msg) => {
 					csv = csv + i + "," + rows[i].Msgs + "," + rows[i].User + "," + rows[i].Text + "," + rows[i].Time + "\n";
 					text  = "";
                                 }
-				var jsonstream = fs.createWriteStream("./upload/output" + Date.now() + ".json");
+				var jsonstream = fs.createWriteStream("./upload/messages" + Date.now() + ".json");
 				jsonstream.once('open', function(fd) {
 					jsonstream.end(JSON.stringify(myjson));
 				});
-				var csvstream = fs.createWriteStream("./upload/output" + Date.now() + ".csv");
+				var csvstream = fs.createWriteStream("./upload/messages" + Date.now() + ".csv");
 				csvstream.once('open', function(fd) {
                                         csvstream.end(csv);
                                 });
+				
 				msg.reply.text("Data exported!");
                                 connection.release();
                                 if(logging == 1){console.log(result);}
@@ -691,11 +692,13 @@ bot.on('/getdataperday', (msg) => {
                                 connection.release();
                                 if(logging == 1){console.log(result);}
                         });
+                        connection.release();
                 });
 });
 
 
 bot.on('/wordlist', (msg) => {
+	let counter = 0;
 	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
     let FROM = " FROM messagetable AS `messagetable`";
     let sqlcmd = SELECT + FROM;
