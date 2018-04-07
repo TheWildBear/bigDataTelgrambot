@@ -695,7 +695,7 @@ bot.on('/getdata', (msg) => {
           Counter: i,
           Message: rows[i].Msgs,
           User: rows[i].User,
-          Text: rows[i].Text,
+          Text: '"' + rows[i].Text + '"',
           Time: rows[i].Time
         });
       }
@@ -799,7 +799,7 @@ bot.on('/wordlist', (msg) => {
       let keys = hashtable.keys();
       keys.forEach((data) => {
         output += data + "," + hashtable.get(data) + "\n";
-        outputtelegram += data + "," + hashtable.get(data) + "\n";
+        /*outputtelegram += data + "," + hashtable.get(data) + "\n";
         counter++;
         if (counter == 80) {
           bot.sendMessage(msg.chat.id, outputtelegram, {
@@ -807,7 +807,7 @@ bot.on('/wordlist', (msg) => {
           });
           outputtelegram = "";
           counter = 0;
-        }
+        }*/
 
       });
       let outputstream = fs.createWriteStream("./upload/wordlist" + Date.now() + ".csv");
