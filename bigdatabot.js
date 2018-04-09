@@ -657,7 +657,7 @@ bot.on('reconnected', (reconnected) => {
 
 bot.on('/getdata', (msg) => {
   msg.reply.text("The data is gathered and saved!");
-  let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, unix_timestamp(`time`) AS `Time`, `text` AS `Text`";
+  let SELECT = "SELECT `msgid`  AS `Msgs`, `groupid` AS `Groupid`, `userid` AS `User`, unix_timestamp(`time`) AS `Time`, `text` AS `Text`";
   let FROM = " FROM messagetable AS `messagetable`";
   let sqlcmd = SELECT + FROM;
   db.getConnection(function(err, connection) {
@@ -685,6 +685,7 @@ bot.on('/getdata', (msg) => {
         myjson[i] = [];
         data = {
           Message: rows[i].Msgs,
+          Groupid: rows[i].Groupid,
           User: rows[i].User,
           Text: rows[i].Text,
           Time: rows[i].Time
@@ -694,6 +695,7 @@ bot.on('/getdata', (msg) => {
         csvStream.write({
           Counter: i,
           Message: rows[i].Msgs,
+          Groupid: rows[i].Groupid,
           User: rows[i].User,
           Text: '"' + rows[i].Text + '"',
           Time: rows[i].Time
