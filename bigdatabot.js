@@ -657,7 +657,7 @@ bot.on('reconnected', (reconnected) => {
 
 bot.on('/getdata', (msg) => {
   msg.reply.text("The data is gathered and saved!");
-  let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
+  let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, unix_timestamp(`time`) AS `Time`, `text` AS `Text`";
   let FROM = " FROM messagetable AS `messagetable`";
   let sqlcmd = SELECT + FROM;
   db.getConnection(function(err, connection) {
@@ -714,10 +714,9 @@ bot.on('/getdata', (msg) => {
   });
 });
 
-
 bot.on('/getdataperday', (msg) => {
   msg.reply.text("The data is gathered and saved!");
-  let SELECT = "SELECT `msgid` AS `Msgs`, DATE(`time`) AS `Time`";
+  let SELECT = "SELECT `msgid` AS `Msgs`, unix_timestamp(DATE(`time`)) AS `Time`";
   let FROM = " FROM messagetable AS `messagetable`";
   let GROUP = "GROUP BY DAY(`time`)";
   let sqlcmd = SELECT + FROM + GROUP;
