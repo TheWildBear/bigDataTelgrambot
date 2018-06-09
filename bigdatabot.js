@@ -6,9 +6,9 @@
  * Version 1.0.2
  */
 var config = require('./config');
-const version = '1.0.3.1';
+const version = '1.0.3.2';
 
-//libs for exporting and encrypting
+// libs for exporting and encrypting
 const csv = require('fast-csv');
 const util = require('util');
 const hash = require('hash-int');
@@ -17,18 +17,18 @@ const sha1 = require('sha1');
 const crypto = require('crypto');
 const HashTable = require('hashtable');
 
-//var. config
+// var config
 var logging = 0;
 var admin = 8846643;
 
-//telegram lib + config
+// telegram lib + config
 const Telebot = require('telebot');
 const bot = new Telebot({
 	token: config.bottoken,
 	limit: 1000
 });
 
-//database lib + config
+// database lib + config
 const mysql = require('mysql');
 var db = mysql.createPool({
 	connectionLimit: 100,
@@ -223,7 +223,7 @@ bot.on('/optout', (msg) => {
 	}
 });
 
-//deletes all msgs by sender of command :(
+// deletes all msgs by sender of command :(
 bot.on('/iwanttodeletemymsgs', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/iwanttodeletemymsgs')) {
 		let sqlcmd = "DELETE FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
@@ -634,7 +634,7 @@ bot.on('/license', (msg) => {
 
 
 
-//exports the data from the database to a csv file and a json file
+// exports the data from the database to a csv file and a json file
 bot.on('/getdata', (msg) => {
 	msg.reply.text("The data is gathered and saved!");
 	let SELECT = "SELECT `msgid`  AS `Msgs`, `groupid` AS `Groupid`, `userid` AS `User`, unix_timestamp(`time`) AS `Time`, `text` AS `Text`";
@@ -780,15 +780,12 @@ bot.on('/wordlist', (msg) => {
 			let keys = hashtable.keys();
 			keys.forEach((data) => {
 				output += data + "," + hashtable.get(data) + "\n";
-				/*outputtelegram += data + "," + hashtable.get(data) + "\n";
-				counter++;
-				if (counter == 80) {
-				  bot.sendMessage(msg.chat.id, outputtelegram, {
-				    asReply: true
-				  });
-				  outputtelegram = "";
-				  counter = 0;
-				}*/
+				/*
+				 * outputtelegram += data + "," + hashtable.get(data) + "\n";
+				 * counter++; if (counter == 80) { bot.sendMessage(msg.chat.id,
+				 * outputtelegram, { asReply: true }); outputtelegram = "";
+				 * counter = 0; }
+				 */
 
 			});
 			let outputstream = fs.createWriteStream("./upload/wordlist" + Date.now() + ".csv");
@@ -797,9 +794,9 @@ bot.on('/wordlist', (msg) => {
 			});
 
 			/*
-			 * //sends Wordlist to chat keys.forEach((data) => {
-			 * outputtelegram += data + "," + hashtable.get(data) + "\n";
-			 * counter++; if(counter==80) { setTimeout(function () {
+			 * //sends Wordlist to chat keys.forEach((data) => { outputtelegram +=
+			 * data + "," + hashtable.get(data) + "\n"; counter++;
+			 * if(counter==80) { setTimeout(function () {
 			 * bot.sendMessage(msg.chat.id,outputtelegram, { asReply: true
 			 * }).then(function(msg) { console.log(msg); });
 			 * 
@@ -838,7 +835,7 @@ bot.on("/banhimnow", (msg) => {
  * function(err, rows){ if(err) throw err; connection.release(); }); }); }
  */
 
-//sends link to repo and informs about the bot
+// sends link to repo and informs about the bot
 bot.on(['/start', '/help'], (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/start') || msg.text.split(' ')[0].endsWith('/help')) {
 		let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/total_amount (total amount of messages collected)\n/total_ownamount (number of your collected messages)\n/iwanttodeletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized";
