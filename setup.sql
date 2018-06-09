@@ -17,3 +17,8 @@ CREATE TABLE IF NOT EXISTS `optintable` (
 	`username` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
         PRIMARY KEY (`userid`)
 );
+
+CREATE TABLE IF NOT EXISTS `broadcast` (
+        `userid` DOUBLE NOT NULL,
+	PRIMARY KEY (`userid`)
+);
