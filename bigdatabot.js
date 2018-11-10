@@ -6,7 +6,7 @@
  * Version 1.0.2
  */
 var config = require('./config');
-const version = '1.0.3.2';
+const version = '1.0.3.3';
 
 // libs for exporting and encrypting
 const csv = require('fast-csv');
@@ -25,6 +25,7 @@ var admin = 8846643;
 const Telebot = require('telebot');
 const bot = new Telebot({
 	token: config.bottoken,
+	usePlugins: ['commandButton'],
 	limit: 1000
 });
 
@@ -51,8 +52,90 @@ var botname = "bigdatabot";
 
 bot.start();
 
+//Here start the informational Commands
+//they are without any user interaction
+
 bot.sendMessage(admin, "Bot started with version: " + version + " at: " + Date());
 
+bot.on(['/dsgvo', '/gdpr', '/privacy'], (msg) => {
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/dsgvo') || msg.text.split(' ')[0].endsWith('/gdpr') || msg.text.split(' ')[0].endsWith('/privacy')) {
+		msg.reply.text("This bot saves according to your user settings some data. Please choose accordingly.\nIf you decide you don't want to save any data more just run /iwanttodeletemymsgs.\nThe data will be gathered to show everybody what bigdata is capable of doing.\nIf you don't choose any settings and you are not /optin than no data of you will be saved. The data will be published to the gitlab from thevillage. You can download all the data. You can lookup the src on github:\nhttps://github.com/TheWildBear/bigDataTelgrambot.");
+	}
+});
+
+//sends the license
+bot.on('/license', (msg) => {
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/license')) {
+		msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\nCheckout the repo at:\nhttps://github.com/TheWildBear/bigDataTelgrambot\n\nCopyright 2018 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', {
+			parseMode: 'markdown',
+			asReply: true
+		});
+		if (logging == 1) {
+			console.log("License sent");
+		}
+	}
+});
+
+//sends link to repo and informs about the bot
+bot.on(['/start', '/help'], (msg) => {
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/start') || msg.text.split(' ')[0].endsWith('/help')) {
+		let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/total_amount (total amount of messages collected)\n/total_ownamount (number of your collected messages)\n/iwanttodeletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized. The version now running is: " + version;
+		return msg.reply.text(startmsg, {
+			asReply: true
+		});
+		if (logging == 1) {
+			console.log("/start || /help sent");
+		}
+	}
+});
+
+bot.on('/ping', (msg) => {
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/ping')) {
+		let timediff = Date.now()/1000 - msg.date;
+		console.log(timediff);
+		msg.reply.text("Pong, Pung, Ping! Ente!!!! FOOOOOOOSSS!!!\n\nThe message was recieved with a timediff of: " + timediff, {
+			asReply: true
+		});
+		if (logging == 1) {
+			console.log("/ping sent");
+		}
+	}
+});
+
+bot.on('/info', (msg, data, props) => {
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/info')) {
+		msg.reply.text(util.inspect(msg, true, null));
+		msg.reply.text(util.inspect(data, true, null));
+		msg.reply.text(util.inspect(props, false, null));
+		bot.sendMessage(msg.from.id, "Your hashed id is: " + hash(msg.from.id) + ". Your unhashed id is: " + msg.from.id);
+		
+	}
+});
+
+bot.on('error', (error) => {
+	console.log(util.inspect(error, true, 99));
+});
+
+bot.on('reconnecting', (reconnecting) => {
+	console.log(util.inspect(reconnecting, true, 99));
+	console.log("connection lost at: " + Date());
+});
+
+bot.on('reconnected', (reconnected) => {
+	console.log(util.inspect(reconnected, true, 99));
+	console.log("connection successfully rebuilt at: " + Date());
+});
+
+//commandlist :D
+
+bot.on('/commands', (msg) => {
+	let commandlist = "/gdpr, /license, /start, /ping, /info, /updateuserinfo, /optin, /optin1, /optin2, /optout, /iwanttodeletemymsgs, /checklogging, /total_amount, /total_ownamount, /ownamount, /subscribe, /unsubscribe, /wordlist, /getdataperday, /getdata, /topingroup1week, /topingroup, /top1week, /toptoday, /top, /count1week, /count, /ownamount, /total_ownamount, /total_amount, /checklogging";
+	msg.reply.text("Here is a list of all commands :D");
+	msg.reply.text(commandlist);
+});
+
+
+//datagathering
 bot.on('text', (msg) => {
 	var checkoptin = "SELECT count(*) AS checkOptin, state AS state FROM optintable where userid = " + hash(msg.from.id) + ";";
 	dbwrite.getConnection(function(err, connection) {
@@ -81,185 +164,136 @@ bot.on('text', (msg) => {
 	});
 });
 
-bot.on(['/dsgvo', '/gdpr'], (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/dsgvo') || msg.text.split(' ')[0].endsWith('/gdpr')) {
-		msg.reply.text("This bot saves according to your user settings some data. Please choose accordingly.\nIf you decide you don't want to save any data more just run /iwanttodeletemymsgs.\nThe data will be gathered to show everybody what bigdata is capable of doing.\nIf you don't choose any settings and you are not /optin than no data of you will be saved. The data will be published to the gitlab from thevillage. You can download all the data. You can lookup the src on github:\nhttps://github.com/TheWildBear/bigDataTelgrambot.");
-	}
-});
-
-// updates userinformation
-bot.on('/updateuserinfo', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/updateuserinfo')) {
-		let sqlcmd = "UPDATE optintable SET username = ? WHERE userid = ?";
-		var values = [msg.from.username, hash(msg.from.id)];
-		if (logging == 1) {
-			console.log(values);
-		}
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, values, function(err, result) {
-				if (err) throw err;
-				msg.reply.text("Your User infos have been updated", {
-					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
-				});
-				connection.release();
-			});
-		});
-	}
-});
-
 bot.on('/optin', (msg) => {
-	msg.reply.text("When you use /optin0 only the text of the msg you write gets logged.\nWhen you use /optin1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use /optin2 additonally to /optin1 your username is safed for use in /top commands");
+	const replyMarkup = bot.inlineKeyboard([
+        [
+            bot.inlineButton('Optin State: 0', {callback: 'optin0'})
+        ],
+        [
+            bot.inlineButton('Optin State: 1', {callback: 'optin1'})
+        ],
+        [
+        	bot.inlineButton('Optin State: 2', {callback: 'optin2'})
+        ],
+        [
+        	bot.inlineButton('Optin State: Optout', {callback: 'optout'})
+        ],
+        [
+        	bot.inlineButton('delete this msg', {callback: 'deletemsg'})
+        ]
+    ]);
+	msg.reply.text("When you use State 0 only the text of the msg you write gets logged.\nWhen you use State 1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use State 2 additonally to State 1 your username is safed for use in /top commands", {replyMarkup});
 });
 
-bot.on('/optin0', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/optin')) {
-		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
-		var values = [
-			[hash(msg.from.id), 0, null]
-		];
-		if (logging == 1) {
-			console.log(values);
-		}
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, [values], function(err, result) {
+function optin(userid, state, username, msg)
+{
+	let sqlcmd = "REPLACE INTO optintable (userid, state, username) VALUES ?";
+	var values = [[userid, state, username]];
+	if (logging == 1) {
+		console.log(values);
+	}
+	console.log(msg);
+	dbwrite.getConnection(function(err, connection) {
+		connection.query(sqlcmd, [values], function(err, result) {
+			if (err) throw err;
+			bot.deleteMessage(msg.message.chat.id, msg.message.message_id);
+			let userinfo;
+			if(msg.from.username!=" ")
+			{
+				userinfo = "@" + msg.from.username;
+			}else{
+				userinfo = msg.from.first_name + " " + msg.from.last_name;
+			}
+			bot.sendMessage(msg.message.chat.id, userinfo + " opted in for data collection in state: " + state + ". Thank you!", {
+				asReply: true
+			});
+			connection.release();
+		});
+	});
+}
+
+function optout(userid, msg)
+{
+	let sqlcmd = "DELETE FROM optintable WHERE userid = ?";
+	let values = [[userid]];
+	if (logging == 1) {
+		console.log(values);
+	}
+	dbwrite.getConnection(function(err, connection) {
+		connection.query(sqlcmd, [values], function(err, result) {
+			if (err) throw err;
+			/*bot.deleteMessage(msg.message.chat.id, msg.message.message_id);
+			bot.sendMessage(msg.message.chat.id, "You opted out for data collection", {
+				asReply: true
+			});*/
+			connection.release();
+		});
+	});
+}
+
+bot.on('/sqlread', (msg) => {
+	if(msg.from.id==admin)
+	{
+		let command = msg.text.split(" ");
+		command = "" + command.slice(1, command.length).join(" ");
+		db.getConnection(function(err, connection) {
+			connection.query(command, function(err, result) {
 				if (err) throw err;
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted in for data collection!", {
-					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
-				});
+				console.log(util.inspect(result,false,null));
+				msg.reply.text(util.inspect(result,false,null));
 				connection.release();
 			});
 		});
 	}
-});
-
-bot.on('/optin1', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/optin')) {
-		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
-		var values = [
-			[hash(msg.from.id), 1, null]
-		];
-		if (logging == 1) {
-			console.log(values);
-		}
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, [values], function(err, result) {
-				if (err) throw err;
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted in for data collection!", {
-					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
-				});
-				connection.release();
-			});
-		});
+	else{
+		console.log("userid: " + msg.from.id + " with username: " + msg.from.username + " tried to access without rights");
+		msg.reply.text("Your not authorized for this action!");
 	}
 });
 
-bot.on('/optin2', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/optin')) {
-		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "INSERT IGNORE INTO optintable (userid, state, username) VALUES ?";
-		var values = [
-			[hash(msg.from.id), 2, msg.from.username]
-		];
-		if (logging == 1) {
-			console.log(values);
-		}
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, [values], function(err, result) {
-				if (err) throw err;
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted in for data collection!", {
-					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
-				});
-				connection.release();
-			});
-		});
-	}
-});
 
 bot.on('/optout', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/optout')) {
-		bot.sendAction(msg.chat.id, 'typing');
-		let sqlcmd = "DELETE FROM optintable WHERE userid = ?";
-		let values = [
-			[hash(msg.from.id)]
-		];
-		if (logging == 1) {
-			console.log(values);
-		}
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, [values], function(err, result) {
-				if (err) throw err;
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("You opted out for data collection", {
-					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
-				});
-				connection.release();
-			});
-		});
-	}
+	optout(hash(msg.from.id),msg);
 });
 
-// deletes all msgs by sender of command :(
+//delete all msgs
 bot.on('/iwanttodeletemymsgs', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/iwanttodeletemymsgs')) {
-		let sqlcmd = "DELETE FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
-		let sqlcmd2 = "DELETE FROM messagetable WHERE userid = " + hash(msg.from.id) + ";";
+	const replyMarkup = bot.inlineKeyboard([
+        [
+            bot.inlineButton('Yes', {callback: 'deleteallmymsgs'})
+        ],
+        [
+            bot.inlineButton('No', {callback: 'deletemsg'})
+        ]
+    ]);
+	return msg.reply.text('Do you really wanna delete all your data?', {replyMarkup});
+});
+
+function deleteallmymsgs(id){
+	let sqlcmd = "DELETE FROM messagetable WHERE userid = " + id + ";";
+		let sqlcmd2 = "DELETE FROM messagetable WHERE userid = " + id + ";";
 		dbwrite.getConnection(function(err, connection) {
 			connection.query(sqlcmd, function(err) {
 				if (err) throw err;
 				if (logging == 1) {
 					console.log("Messages deleted!");
 				}
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your msgs have been deleted :(");
-				connection.release();
 			});
-		});
-		dbwrite.getConnection(function(err, connection) {
 			connection.query(sqlcmd2, function(err) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log("Messages deleted!");
-				}
-				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your msgs have been deleted :(");
-				connection.release();
+					console.log("Userid deleted!");
+				}				
 			});
+			connection.release();
 		});
-	}
-});
+}
 
 bot.on('/checklogging', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/checklogging')) {
 		bot.sendAction(msg.chat.id, 'typing');
 		let sqlcmd = "SELECT COUNT(*) AS logging, state AS state FROM optintable where userid = ?";
-		let values = [
-			[hash(msg.from.id)]
-		];
+		let values = [[hash(msg.from.id)]];
 		if (logging == 1) {
 			console.log(values);
 		}
@@ -269,10 +303,6 @@ bot.on('/checklogging', (msg) => {
 				bot.deleteMessage(msg.chat.id, msg.message_id);
 				msg.reply.text("Your current status is: " + util.inspect(rows[0].logging, false, null) + " with the logging level of: " + rows[0].state, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
@@ -294,10 +324,6 @@ bot.on('/total_amount', (msg) => {
 				bot.deleteMessage(msg.chat.id, msg.message_id);
 				msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount, false, null), {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
@@ -321,10 +347,6 @@ bot.on('/total_ownamount', (msg) => {
 				}
 				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
@@ -351,10 +373,6 @@ bot.on('/ownamount', (msg) => {
 				}
 				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
@@ -381,10 +399,6 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
 				}
 				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length + " characters.",{
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
@@ -409,16 +423,41 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
 				}
 				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 			});
 		});
 	}
 });
+
+//sends statistical the amount of saved data per day
+
+bot.on('/stats', (msg) =>{
+	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/stats')) {
+		let sqlcmd = "SELECT COUNT(*) AS Amount, Date(time) AS Day from messagetable GROUP BY DATE(time) DESC LIMIT 7;";
+		db.getConnection(function(err, connection) {
+			connection.query(sqlcmd, function(err, rows) {
+				if (err) throw err;
+				let result = "The stats are:\nDay | Amount of msgs per Day\n";
+				for(var i in rows){
+					result = result + rows[i].Day + " | " + rows[i].Amount + "\n";
+				}
+				msg.reply.text(result);
+			});
+			connection.release();
+		});
+	}
+});
+
+function top(msg)
+{
+	let SELECT ="";
+	let FROM ="";
+	let WHERE ="";
+	let GROUP ="";
+	let ORDER ="";
+	let sqlcmd = SELECT + FROM + WHERE + GROUP + ODER;
+}
 
 // sends a list containing the top 10 people writing msgs
 bot.on('/top', (msg) => {
@@ -443,16 +482,12 @@ bot.on('/top', (msg) => {
 					}
 					result = result + i + user + " | Messages: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length + "\n";
 				}
-				result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
+				result = result + "\nIf you want you're name to show up use: /optin2\nWhen you want to anonymize youreself again use /optin1";
 				if (msg.chat.type != "private") {
 					bot.deleteMessage(msg.chat.id, msg.message_id);
 				}
 				msg.reply.text(result, {
 					parseMode: 'markdown'
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 				if (logging == 1) {
@@ -487,16 +522,12 @@ bot.on('/toptoday', (msg) => {
 					result = result + i + user + " | Messages#: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
-				result = result + "\nIf you want you're name to show up use: /updateuserinfo\nWhen you want to anonymize youreself again use /deleteuserinfo";
+				result = result + "\nIf you want you're name to show up use: /optin2\nWhen you want to anonymize youreself again use /optin1";
 				if (msg.chat.type != "private") {
 					bot.deleteMessage(msg.chat.id, msg.message_id);
 				}
 				msg.reply.text(result, {
 					parseMode: 'markdown'
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 				if (logging == 1) {
@@ -528,17 +559,13 @@ bot.on('/top1week', (msg) => {
 					} else {
 						user = ". " + rows[i].User;
 					}
-					result = result + i + user + " | Messages#: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
+					result = result + i + user + " | Messages: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
-				result = result + "\nIf you want you're name to show up use: /updateuserinfo";
+				result = result + "\nIf you want you're name to show up use: /optin1 or lower";
 				msg.reply.text(result, {
 					parseMode: 'markdown',
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 				if (logging == 1) {
@@ -570,10 +597,6 @@ bot.on('/topingroup', (msg) => {
 				}
 				msg.reply.text(result, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 				if (logging == 1) {
@@ -605,10 +628,6 @@ bot.on('/topingroup1week', (msg) => {
 				}
 				msg.reply.text(result, {
 					asReply: true
-				}).then(function(msg) {
-					setTimeout(function() {
-						bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-					}, 60000);
 				});
 				connection.release();
 				if (logging == 1) {
@@ -618,21 +637,6 @@ bot.on('/topingroup1week', (msg) => {
 		});
 	}
 });
-
-// sends the license
-bot.on('/license', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/license')) {
-		msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\nCheckout the repo at:\nhttps://github.com/TheWildBear/bigDataTelgrambot\n\nCopyright 2017 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', {
-			parseMode: 'markdown',
-			asReply: true
-		});
-		if (logging == 1) {
-			console.log("License sent");
-		}
-	}
-});
-
-
 
 // exports the data from the database to a csv file and a json file
 bot.on('/getdata', (msg) => {
@@ -753,8 +757,9 @@ bot.on('/getdataperday', (msg) => {
 bot.on('/wordlist', (msg) => {
 	let counter = 0;
 	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
-	let FROM = " FROM messagetable AS `messagetable`";
+	let FROM = " FROM messagetable AS `messagetable`;";
 	let sqlcmd = SELECT + FROM;
+	console.log("wordlist gathering started!")
 	db.getConnection(function(err, connection) {
 		connection.query(sqlcmd, function(err, rows) {
 			if (err) throw err;
@@ -775,7 +780,7 @@ bot.on('/wordlist', (msg) => {
 						hashtable.put(data, amount);
 					});
 			}
-
+			console.log("wordlist gathered!")
 			// saves Wordlist to file
 			let keys = hashtable.keys();
 			keys.forEach((data) => {
@@ -786,13 +791,14 @@ bot.on('/wordlist', (msg) => {
 				 * outputtelegram, { asReply: true }); outputtelegram = "";
 				 * counter = 0; }
 				 */
-
 			});
-			let outputstream = fs.createWriteStream("./upload/wordlist" + Date.now() + ".csv");
-			outputstream.once('open', function(fd) {
-				outputstream.end(output);
+			//console.log(output);
+			console.log("wordlist sorted!");
+			let wordlistfile = fs.writeFile("./upload/wordlist" + Date.now() + ".csv", output, function (err){
+				if (err) throw err;
+				console.log("wordlist written");
 			});
-
+			
 			/*
 			 * //sends Wordlist to chat keys.forEach((data) => { outputtelegram +=
 			 * data + "," + hashtable.get(data) + "\n"; counter++;
@@ -810,70 +816,13 @@ bot.on('/wordlist', (msg) => {
 	});
 });
 
-/*
- * bot.on(/^\/adduser (.+)$/, (msg,props) => { console.log(props.match[1]);
- * config.uploaduser = config.uploaduser +
- * util.inspect(props.match[1],false,null) + ", "; });
- */
-
-bot.on("/banhimnow", (msg) => {
-	msg.reply.text("Nöööö Nöööö Nöööööö Nööööööööööö!", {
-		asReply: true
-	});
-});
-/*
- * bot.on("/mute", (msg) => { let SELECT = "SELECT `msgid` AS `Msgs`, `userid`
- * AS `User`, `time` AS `Time`, `text` AS `Text`"; let FROM = " FROM
- * messagetable AS `messagetable`"; let sqlcmd = SELECT + FROM;
- * db.getConnection(function(err, connection) { connection.query(sqlcmd,
- * function(err, rows){ if(err) throw err; connection.release(); }); }); });
- * 
- * function checkmuted(msg){ let SELECT = "SELECT `msgid` AS `Msgs`, `userid` AS
- * `User`, `time` AS `Time`, `text` AS `Text`"; let FROM = " FROM messagetable
- * AS `messagetable`"; let sqlcmd = SELECT + FROM;
- * db.getConnection(function(err, connection) { connection.query(sqlcmd,
- * function(err, rows){ if(err) throw err; connection.release(); }); }); }
- */
-
-// sends link to repo and informs about the bot
-bot.on(['/start', '/help'], (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/start') || msg.text.split(' ')[0].endsWith('/help')) {
-		let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/total_amount (total amount of messages collected)\n/total_ownamount (number of your collected messages)\n/iwanttodeletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized";
-		msg.reply.text(startmsg, {
-			asReply: true
-		});
-		if (logging == 1) {
-			console.log("/start || /help sent");
-		}
-	}
-});
-
-bot.on('/ping', (msg) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/ping')) {
-		msg.reply.text("Pong, Pung, Ping! Ente!!!! FOOOOOOOSSS!!!", {
-			asReply: true
-		});
-		if (logging == 1) {
-			console.log("/start & /help sent");
-		}
-	}
-});
-
-bot.on('/info', (msg, data, props) => {
-	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/info')) {
-		msg.reply.text(util.inspect(msg, true, null));
-		msg.reply.text(util.inspect(data, true, null));
-		msg.reply.text(util.inspect(props, false, null));
-	}
-});
-
-bot.on('/subscribe2podcast', (msg) => {
+bot.on('/subscribe', (msg) => {
 	let sqlcmd = "INSERT IGNORE INTO broadcast (userid) VALUES ?";
 	var values = [[msg.from.id]];
 	dbwrite.getConnection(function(err, connection) {
 		connection.query(sqlcmd, [values], function(err, result) {
 			if (err) throw err;
-			msg.reply.text("You successfully subscribed! Of course your real userid has to be safed for that. It will not be exported to anywhere! If you don't want this service anymore run /unsubscribe");
+			msg.reply.text("You successfully subscribed! Of course your real userid has to be saved for that. It will not be exported to anywhere! If you don't want this service anymore run /unsubscribe");
 			connection.release();
 		});
 	});
@@ -889,10 +838,6 @@ bot.on('/unsubscribe', (msg) => {
 			bot.deleteMessage(msg.chat.id, msg.message_id);
 			msg.reply.text("You successfully unsubscribed! Your userid has been deleted from this list!", {
 				asReply: true
-			}).then(function(msg) {
-				setTimeout(function() {
-					bot.deleteMessage(msg.result.chat.id, msg.result.message_id);
-				}, 60000);
 			});
 			connection.release();
 		});
@@ -918,16 +863,87 @@ bot.on(/^\/broadcast (.+)$/, (msg, props) => {
 	}
 });
 
-bot.on('error', (error) => {
-	console.log(util.inspect(error, true, 99));
+/*
+//last action on day
+jeden abend um 23:59 anzahl an leuten in jeder gruppe in die datenbank speichern
+*/
+
+//var statssqlcmd = "UPDATE statstable SET msgs = msgs+1 WHERE day = CURDATE();";
+
+
+//function for auto insert of msgs
+/*
+var checktoday = "SELECT COUNT(msgs) AS amount from statstable where day = CURDATE()";
+var updatetoday = "INSERT IGNORE INTO statstable (groupid, day) VALUES ?";
+var values = [[msg.chat.id, CURDATE()]];
+let amount;
+dbwrite.getConnection(function(err, connection) {
+	connection.query(checktoday, function(err, rows) {
+		if(rows[0].amount==0)
+		{
+			amount = 1;
+		}else{
+			amount = rows[0].msgs + 1;
+		}
+			
+		connection.query(updatetoday, function(err, rows) {
+			
+		});
+	});
+	connection.release();
+});*/
+
+
+//testcommand
+bot.on('/test', (msg) => {
+	let replyMarkup = bot.keyboard([
+        [bot.button('contact', 'Your contact'), bot.button('location', 'Your location')],
+        ['/back', '/hide']
+    ], {resize: true});
+	return bot.sendMessage(msg.from.id, "Test", {replyMarkup});
 });
 
-bot.on('reconnecting', (reconnecting) => {
-	console.log(util.inspect(reconnecting, true, 99));
-	console.log("connection lost at: " + Date());
+//Hide keyboard
+bot.on('/hide', msg => {
+    return bot.sendMessage(
+        msg.from.id, 'Hide keyboard example. Type /back to show.', {replyMarkup: 'hide'}
+    );
 });
 
-bot.on('reconnected', (reconnected) => {
-	console.log(util.inspect(reconnected, true, 99));
-	console.log("connection successfully rebuilt at: " + Date());
+//callback query backend
+bot.on('callbackQuery', (msg) => {
+    console.log('callbackQuery data:', msg.data);
+    bot.answerCallbackQuery(msg.id);
+    if(msg.data=="deleteallmymsgs")
+    {
+    	deleteallmymsgs(hash(msg.id));
+    }
+    if(msg.data=="deletemsg")
+    {
+    	deletemsg(msg.message.chat.id, msg.message.message_id);
+    }
+    if(msg.data=="optin0")
+    {
+    	optin(hash(msg.from.id), 0, null, msg);
+    }
+    if(msg.data=="optin1")
+    {
+    	optin(hash(msg.from.id), 1, null, msg);
+    }
+    if(msg.data=="optin2")
+    {
+    	optin(hash(msg.from.id), 2, msg.from.username, msg);
+    }
+    if(msg.data=="optout")
+    {
+    	optout(hash(msg.from.id),msg);
+    }
 });
+
+function deletemsg(chatid, msgid){
+	bot.deleteMessage(chatid, msgid);
+}
+
+function test(id){
+	console.log("test worked" + id);
+}
