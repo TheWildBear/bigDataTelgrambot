@@ -916,7 +916,7 @@ bot.on('callbackQuery', (msg) => {
     bot.answerCallbackQuery(msg.id);
     if(msg.data=="deleteallmymsgs")
     {
-    	deleteallmymsgs(hash(msg.id));
+    	deleteallmymsgs(hash(msg.from.id));
     }
     if(msg.data=="deletemsg")
     {
