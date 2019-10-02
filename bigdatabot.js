@@ -6,7 +6,7 @@
  * Version 1.0.2
  */
 var config = require('./config');
-const version = '1.0.3.3';
+const version = '1.0.3.3.1';
 
 // libs for exporting and encrypting
 const csv = require('fast-csv');
@@ -554,10 +554,10 @@ bot.on('/topingroup', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/topingroup')) {
 		bot.sendAction(msg.chat.id, 'typing');
 		let groupid = msg.chat.id
-		let SELECT = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User`, truncate(avg(char_length( `text` )),2) AS AVG_Length";
-		let FROM = " FROM messagetable AS `messagetable`";
-		let WHERE = " WHERE `text` NOT LIKE '/%' AND groupid = " + groupid;
-		let GROUP = " GROUP BY `userid`";
+		let SELECT = "SELECT DISTINCT COUNT( `messagetable`.`msgid` ) AS `Msgs`, `messagetable`.`userid` AS `User`, TRUNCATE( AVG( CHAR_LENGTH ( `text` ) ), 2 ) AS `AVG_Length`, `optintable`.`username` AS `Username`"
+		let FROM = "FROM { oj `db`.`messagetable` AS `messagetable` NATURAL LEFT OUTER JOIN `db`.`optintable` AS `optintable` }"
+		let WHERE = " WHERE `messagetable`.`text` NOT LIKE '/%' AND  `messagetable`.`groupid` = " + groupid;
+		let GROUP = " GROUP BY `userid`"
 		let ORDER = " ORDER BY `Msgs` DESC LIMIT 10;";
 		let sqlcmd = SELECT + FROM + WHERE + GROUP + ORDER;
 		db.getConnection(function(err, connection) {
@@ -565,7 +565,12 @@ bot.on('/topingroup', (msg) => {
 				if (err) throw err;
 				let result = "In this group the top msg writing people are: \n";
 				for (var i in rows) {
-					result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
+					if (rows[i].Username != null) {
+						user = ". [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
+					} else {
+						user = ". " + rows[i].User;
+					}
+					result = result + i + user + " | Messages: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
 				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
@@ -583,18 +588,23 @@ bot.on('/topingroup1week', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/topingroup1week')) {
 		bot.sendAction(msg.chat.id, 'typing');
 		let groupid = msg.chat.id
-		let SELECT = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User`, truncate(avg(char_length( `text` )),2) AS AVG_Length";
-		let FROM = " FROM messagetable AS `messagetable`";
-		let WHERE = " WHERE `text` NOT LIKE '/%' AND groupid = " + groupid + " AND (time > (now() - INTERVAL 1 WEEK))";
-		let GROUP = " GROUP BY `userid`";
-		let ORDER = " ORDER BY `Msgs` DESC LIMIT 10;";
+		let SELECT = "SELECT DISTINCT COUNT( `messagetable`.`msgid` ) AS `Msgs`, `messagetable`.`userid` AS `User`, TRUNCATE( AVG( CHAR_LENGTH ( `text` ) ), 2 ) AS `AVG_Length`, `optintable`.`username` AS `Username`"
+		let FROM = "FROM { oj `db`.`messagetable` AS `messagetable` NATURAL LEFT OUTER JOIN `db`.`optintable` AS `optintable` }"
+		let WHERE = " WHERE `messagetable`.`text` NOT LIKE '/%' AND `messagetable`.`groupid` = " + groupid + " AND (`messagetable`.`time` > (now() - INTERVAL 1 WEEK))";
+		let GROUP = " GROUP BY `messagetable`.`userid`";
+		let ORDER = " ORDER BY Msgs DESC LIMIT 10;";
 		let sqlcmd = SELECT + FROM + WHERE + GROUP + ORDER;
 		db.getConnection(function(err, connection) {
 			connection.query(sqlcmd, function(err, rows) {
 				if (err) throw err;
 				let result = "In this group the top msg writing people are: \n";
 				for (var i in rows) {
-					result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
+					if (rows[i].Username != null) {
+						user = ". [" + rows[i].Username + "](t.me/" + rows[i].Username + ")";
+					} else {
+						user = ". " + rows[i].User;
+					}
+					result = result + i + user + " | Messages: " + rows[i].Msgs + "| avg. Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
 				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
