@@ -520,7 +520,7 @@ bot.on('/top1week', (msg) => {
 		bot.sendAction(msg.chat.id, 'typing');
 		let SELECT = "SELECT DISTINCT COUNT( `messagetable`.`msgid` ) AS `Msgs`, `messagetable`.`userid` AS `User`, TRUNCATE( AVG( CHAR_LENGTH ( `text` ) ), 2 ) AS `AVG_Length`, `optintable`.`username` AS `Username`";
 		let FROM = "FROM { oj `db`.`messagetable` AS `messagetable` NATURAL LEFT OUTER JOIN `db`.`optintable` AS `optintable` }";
-		let WHERE = " WHERE (`messagetable`.`text` NOT LIKE '/%') AND (`messagetable`.`time` < (now() - INTERVAL 1 WEEK))";
+		let WHERE = " WHERE (`messagetable`.`text` NOT LIKE '/%') AND (`messagetable`.`time` > (now() - INTERVAL 1 WEEK))";
 		let GROUP = " GROUP BY `messagetable`.`userid`";
 		let ORDER = " ORDER BY `Msgs` DESC LIMIT 10;";
 		let sqlcmd = SELECT + FROM + WHERE + GROUP + ORDER;
@@ -585,7 +585,7 @@ bot.on('/topingroup1week', (msg) => {
 		let groupid = msg.chat.id
 		let SELECT = "SELECT DISTINCT COUNT( `msgid` ) AS `Msgs`, `userid` AS `User`, truncate(avg(char_length( `text` )),2) AS AVG_Length";
 		let FROM = " FROM messagetable AS `messagetable`";
-		let WHERE = " WHERE `text` NOT LIKE '/%' AND groupid = " + groupid + " AND (time < (now() - INTERVAL 1 WEEK))";
+		let WHERE = " WHERE `text` NOT LIKE '/%' AND groupid = " + groupid + " AND (time > (now() - INTERVAL 1 WEEK))";
 		let GROUP = " GROUP BY `userid`";
 		let ORDER = " ORDER BY `Msgs` DESC LIMIT 10;";
 		let sqlcmd = SELECT + FROM + WHERE + GROUP + ORDER;
