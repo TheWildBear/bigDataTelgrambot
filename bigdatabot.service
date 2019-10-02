@@ -1,0 +1,17 @@
+[Unit]
+Description=Bigdatabot Telegram Service
+After=network.target
+After=mysqld.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=10
+StartLimitBurst=50
+StartLimitIntervalSec=10
+User=Your_User
+ExecStart=YourPath
+
+[Install]
+WantedBy=multi-user.target

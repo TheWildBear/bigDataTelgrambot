@@ -22,3 +22,10 @@ CREATE TABLE IF NOT EXISTS `broadcast` (
         `userid` DOUBLE NOT NULL,
 	PRIMARY KEY (`userid`)
 );
+
+CREATE TABLE IF NOT EXISTS `statstable` (
+	`msgs` DOUBLE NOT NULL,
+	`groupid` DOUBLE NOT NULL,
+	`day` DATE NOT NULL,
+	PRIMARY KEY (`msgs`, `groupid`)
+);

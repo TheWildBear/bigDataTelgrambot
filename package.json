@@ -4,11 +4,11 @@
   "description": "A big data bot",
   "main": "bigdatabot.js",
   "dependencies": {
-    "fast-csv": "^2.4.1",
+    "fast-csv": "^2.5.0",
     "fs": "0.0.1-security",
     "hash-int": "^1.0.0",
     "hashtable": "^2.0.2",
-    "mysql": "^2.15.0",
+    "mysql": "^2.17.1",
     "sha1": "^1.1.1",
     "telebot": "^1.2.6",
     "util": "^0.10.4"
