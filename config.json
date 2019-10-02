@@ -6,5 +6,6 @@
         "dbreaduser":"DB_USER",
         "dbreaduserpwd":"DB_PWD",
         "bottoken":"your_token",
-        "uploaduser":""
+        "uploaduser":"",
+	"log":"yourloglocation"
 }

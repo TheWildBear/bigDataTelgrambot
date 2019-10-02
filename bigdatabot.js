@@ -55,7 +55,7 @@ bot.start();
 //Here start the informational Commands
 //they are without any user interaction
 
-bot.sendMessage(admin, "Bot started with version: " + version + " at: " + Date());
+bot.sendMessage(admin, "Bot started with version: ```" + version + "``` at: " + Date());
 
 bot.on(['/dsgvo', '/gdpr', '/privacy'], (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/dsgvo') || msg.text.split(' ')[0].endsWith('/gdpr') || msg.text.split(' ')[0].endsWith('/privacy')) {
@@ -71,7 +71,7 @@ bot.on('/license', (msg) => {
 			asReply: true
 		});
 		if (logging == 1) {
-			console.log("License sent");
+			log("License sent");
 		}
 	}
 });
@@ -84,7 +84,7 @@ bot.on(['/start', '/help'], (msg) => {
 			asReply: true
 		});
 		if (logging == 1) {
-			console.log("/start || /help sent");
+			log("/start || /help sent");
 		}
 	}
 });
@@ -92,12 +92,12 @@ bot.on(['/start', '/help'], (msg) => {
 bot.on('/ping', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/ping')) {
 		let timediff = Date.now()/1000 - msg.date;
-		console.log(timediff);
+		log(timediff);
 		msg.reply.text("Pong, Pung, Ping! Ente!!!! FOOOOOOOSSS!!!\n\nThe message was recieved with a timediff of: " + timediff, {
 			asReply: true
 		});
 		if (logging == 1) {
-			console.log("/ping sent");
+			log("/ping sent");
 		}
 	}
 });
@@ -113,17 +113,17 @@ bot.on('/info', (msg, data, props) => {
 });
 
 bot.on('error', (error) => {
-	console.log(util.inspect(error, true, 99));
+	log(util.inspect(error, true, 99));
 });
 
 bot.on('reconnecting', (reconnecting) => {
-	console.log(util.inspect(reconnecting, true, 99));
-	console.log("connection lost at: " + Date());
+	log(util.inspect(reconnecting, true, 99));
+	log("connection lost at: " + Date());
 });
 
 bot.on('reconnected', (reconnected) => {
-	console.log(util.inspect(reconnected, true, 99));
-	console.log("connection successfully rebuilt at: " + Date());
+	log(util.inspect(reconnected, true, 99));
+	log("connection successfully rebuilt at: " + Date());
 });
 
 //commandlist :D
@@ -155,7 +155,7 @@ bot.on('text', (msg) => {
 					];
 				}
 				if (logging == 1) {
-					console.log("messageid: " + msg.messageid + " userid: " + hash(msg.from.id) + " chatid: " + msg.chat.id + " message_text: " + msg.text + " chattype: " + msg.chat.type);
+					log("messageid: " + msg.messageid + " userid: " + hash(msg.from.id) + " chatid: " + msg.chat.id + " message_text: " + msg.text + " chattype: " + msg.chat.type);
 				}
 				connection.query(sqlcmd, [values]);
 			}
@@ -190,9 +190,9 @@ function optin(userid, state, username, msg)
 	let sqlcmd = "REPLACE INTO optintable (userid, state, username) VALUES ?";
 	var values = [[userid, state, username]];
 	if (logging == 1) {
-		console.log(values);
+		log(values);
 	}
-	console.log(msg);
+	log(msg);
 	dbwrite.getConnection(function(err, connection) {
 		connection.query(sqlcmd, [values], function(err, result) {
 			if (err) throw err;
@@ -217,7 +217,7 @@ function optout(userid, msg)
 	let sqlcmd = "DELETE FROM optintable WHERE userid = ?";
 	let values = [[userid]];
 	if (logging == 1) {
-		console.log(values);
+		log(values);
 	}
 	dbwrite.getConnection(function(err, connection) {
 		connection.query(sqlcmd, [values], function(err, result) {
@@ -239,14 +239,14 @@ bot.on('/sqlread', (msg) => {
 		db.getConnection(function(err, connection) {
 			connection.query(command, function(err, result) {
 				if (err) throw err;
-				console.log(util.inspect(result,false,null));
+				log(util.inspect(result,false,null));
 				msg.reply.text(util.inspect(result,false,null));
 				connection.release();
 			});
 		});
 	}
 	else{
-		console.log("userid: " + msg.from.id + " with username: " + msg.from.username + " tried to access without rights");
+		log("userid: " + msg.from.id + " with username: " + msg.from.username + " tried to access without rights");
 		msg.reply.text("Your not authorized for this action!");
 	}
 });
@@ -270,23 +270,24 @@ bot.on('/iwanttodeletemymsgs', (msg) => {
 });
 
 function deleteallmymsgs(id){
+	log(id);
 	let sqlcmd = "DELETE FROM messagetable WHERE userid = " + id + ";";
-		let sqlcmd2 = "DELETE FROM messagetable WHERE userid = " + id + ";";
-		dbwrite.getConnection(function(err, connection) {
-			connection.query(sqlcmd, function(err) {
-				if (err) throw err;
-				if (logging == 1) {
-					console.log("Messages deleted!");
-				}
-			});
-			connection.query(sqlcmd2, function(err) {
-				if (err) throw err;
-				if (logging == 1) {
-					console.log("Userid deleted!");
-				}				
-			});
-			connection.release();
+	let sqlcmd2 = "DELETE FROM optintable WHERE userid = " + id + ";";
+	dbwrite.getConnection(function(err, connection) {
+		connection.query(sqlcmd, function(err) {
+			if (err) throw err;
+			if (logging == 1) {
+				log("Messages deleted!");
+			}
 		});
+		connection.query(sqlcmd2, function(err) {
+			if (err) throw err;
+			if (logging == 1) {
+				log("Userid deleted!");
+			}				
+		});
+		connection.release();
+	});
 }
 
 bot.on('/checklogging', (msg) => {
@@ -295,7 +296,7 @@ bot.on('/checklogging', (msg) => {
 		let sqlcmd = "SELECT COUNT(*) AS logging, state AS state FROM optintable where userid = ?";
 		let values = [[hash(msg.from.id)]];
 		if (logging == 1) {
-			console.log(values);
+			log(values);
 		}
 		db.getConnection(function(err, connection) {
 			connection.query(sqlcmd, [values], function(err, rows) {
@@ -319,7 +320,7 @@ bot.on('/total_amount', (msg) => {
 			connection.query(sqlcmd, function(err, rows) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log(util.inspect(rows[0].amount, false, null));
+					log(util.inspect(rows[0].amount, false, null));
 				}
 				bot.deleteMessage(msg.chat.id, msg.message_id);
 				msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount, false, null), {
@@ -343,7 +344,7 @@ bot.on('/total_ownamount', (msg) => {
 			connection.query(sqlcmd, function(err, rows) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log(util.inspect(rows[0].amount, false, null));
+					log(util.inspect(rows[0].amount, false, null));
 				}
 				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
 					asReply: true
@@ -369,7 +370,7 @@ bot.on('/ownamount', (msg) => {
 			connection.query(sqlcmd, function(err, rows) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log(util.inspect(rows[0].amount, false, null));
+					log(util.inspect(rows[0].amount, false, null));
 				}
 				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
 					asReply: true
@@ -395,7 +396,7 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
 			connection.query(sqlcmd, [values], function(err, rows) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log(util.inspect(rows[0].AVG_Length, false, null));
+					log(util.inspect(rows[0].AVG_Length, false, null));
 				}
 				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length + " characters.",{
 					asReply: true
@@ -419,7 +420,7 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
 			connection.query(sqlcmd, [values], function(err, rows) {
 				if (err) throw err;
 				if (logging == 1) {
-					console.log(util.inspect(rows[0].AVG_Length, false, null));
+					log(util.inspect(rows[0].AVG_Length, false, null));
 				}
 				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, {
 					asReply: true
@@ -491,7 +492,7 @@ bot.on('/top', (msg) => {
 				});
 				connection.release();
 				if (logging == 1) {
-					console.log(result);
+					log(result);
 				}
 			});
 		});
@@ -531,7 +532,7 @@ bot.on('/toptoday', (msg) => {
 				});
 				connection.release();
 				if (logging == 1) {
-					console.log(result);
+					log(result);
 				}
 			});
 		});
@@ -569,7 +570,7 @@ bot.on('/top1week', (msg) => {
 				});
 				connection.release();
 				if (logging == 1) {
-					console.log(result);
+					log(result);
 				}
 			});
 		});
@@ -600,7 +601,7 @@ bot.on('/topingroup', (msg) => {
 				});
 				connection.release();
 				if (logging == 1) {
-					console.log(result);
+					log(result);
 				}
 			});
 		});
@@ -631,7 +632,7 @@ bot.on('/topingroup1week', (msg) => {
 				});
 				connection.release();
 				if (logging == 1) {
-					console.log(result);
+					log(result);
 				}
 			});
 		});
@@ -656,7 +657,7 @@ bot.on('/getdata', (msg) => {
 				writableStream = fs.createWriteStream("./upload/messages" + Date.now() + ".csv");
 
 			writableStream.on("finish", function() {
-				console.log("DONE!");
+				log("DONE!");
 			});
 
 			csvStream.pipe(writableStream);
@@ -694,7 +695,7 @@ bot.on('/getdata', (msg) => {
 			msg.reply.text("Data exported!");
 			connection.release();
 			if (logging == 1) {
-				console.log(result);
+				log(result);
 			}
 		});
 	});
@@ -715,7 +716,7 @@ bot.on('/getdataperday', (msg) => {
 				writableStream = fs.createWriteStream("./upload/messagesperday" + Date.now() + ".csv");
 
 			writableStream.on("finish", function() {
-				console.log("DONE!");
+				log("DONE!");
 			});
 			var myjson = {};
 			var data = {};
@@ -729,7 +730,7 @@ bot.on('/getdataperday', (msg) => {
 				data = {
 					Messages: rows[i].Msgs,
 				}
-				// console.log(util.inspect(data,true,99));
+				// log(util.inspect(data,true,99));
 				myjson[rows[i].Time].push(data);
 				csvStream.write({
 					Counter: i,
@@ -746,10 +747,10 @@ bot.on('/getdataperday', (msg) => {
 			msg.reply.text("Data exported!");
 			connection.release();
 			if (logging == 1) {
-				console.log(result);
+				log(result);
 			}
+			connection.release();
 		});
-		connection.release();
 	});
 });
 
@@ -759,7 +760,7 @@ bot.on('/wordlist', (msg) => {
 	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
 	let FROM = " FROM messagetable AS `messagetable`;";
 	let sqlcmd = SELECT + FROM;
-	console.log("wordlist gathering started!")
+	log("wordlist gathering started!")
 	db.getConnection(function(err, connection) {
 		connection.query(sqlcmd, function(err, rows) {
 			if (err) throw err;
@@ -780,7 +781,7 @@ bot.on('/wordlist', (msg) => {
 						hashtable.put(data, amount);
 					});
 			}
-			console.log("wordlist gathered!")
+			log("wordlist gathered!")
 			// saves Wordlist to file
 			let keys = hashtable.keys();
 			keys.forEach((data) => {
@@ -792,11 +793,11 @@ bot.on('/wordlist', (msg) => {
 				 * counter = 0; }
 				 */
 			});
-			//console.log(output);
-			console.log("wordlist sorted!");
+			//log(output);
+			log("wordlist sorted!");
 			let wordlistfile = fs.writeFile("./upload/wordlist" + Date.now() + ".csv", output, function (err){
 				if (err) throw err;
-				console.log("wordlist written");
+				log("wordlist written");
 			});
 			
 			/*
@@ -804,20 +805,23 @@ bot.on('/wordlist', (msg) => {
 			 * data + "," + hashtable.get(data) + "\n"; counter++;
 			 * if(counter==80) { setTimeout(function () {
 			 * bot.sendMessage(msg.chat.id,outputtelegram, { asReply: true
-			 * }).then(function(msg) { console.log(msg); });
+			 * }).then(function(msg) { log(msg); });
 			 * 
 			 * outputtelegram = ""; counter = 0; }, 5000); }
 			 * 
 			 * });
 			 */
-
+			connection.release();
 		});
-		connection.release();
 	});
 });
 
+bot.on('/uptime', (msg) => {
+	
+});
+
 bot.on('/subscribe', (msg) => {
-	let sqlcmd = "INSERT IGNORE INTO broadcast (userid) VALUES ?";
+	let sqlcmd = "REPLACE INTO broadcast (userid) VALUES ?";
 	var values = [[msg.from.id]];
 	dbwrite.getConnection(function(err, connection) {
 		connection.query(sqlcmd, [values], function(err, result) {
@@ -845,7 +849,7 @@ bot.on('/unsubscribe', (msg) => {
 });
 
 bot.on(/^\/broadcast (.+)$/, (msg, props) => {
-	console.log(props.match[1]);
+	log(props.match[1]);
 	if(msg.from.id==admin){
 		if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/broadcast')) {
 			let sqlcmd = "SELECT userid AS User FROM broadcast";
@@ -853,7 +857,7 @@ bot.on(/^\/broadcast (.+)$/, (msg, props) => {
 				connection.query(sqlcmd, function(err, rows) {
 					if (err) throw err;
 					for (var i in rows) {
-						console.log(rows[i]);
+						log(rows[i]);
 						bot.sendMessage(rows[i].User,props.match[1]);
 					}
 				});
@@ -912,7 +916,7 @@ bot.on('/hide', msg => {
 
 //callback query backend
 bot.on('callbackQuery', (msg) => {
-    console.log('callbackQuery data:', msg.data);
+    log('callbackQuery data:', msg.data);
     bot.answerCallbackQuery(msg.id);
     if(msg.data=="deleteallmymsgs")
     {
@@ -945,5 +949,12 @@ function deletemsg(chatid, msgid){
 }
 
 function test(id){
-	console.log("test worked" + id);
+	log("test worked" + id);
+}
+
+function log(data){
+	data = data +  "\n";
+	fs.appendFile(config.log, data, function(err){
+		if (err) throw err;
+	});
 }
