@@ -55,21 +55,18 @@ bot.start();
 //Here start the informational Commands
 //they are without any user interaction
 
-bot.sendMessage(admin, "Bot started with version: ```" + version + "``` at: " + Date());
+bot.sendMessage(admin, "Bot started with version: `" + version + "` at: " + Date(), {parseMode: 'markdown', asReply: true});
 
 bot.on(['/dsgvo', '/gdpr', '/privacy'], (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/dsgvo') || msg.text.split(' ')[0].endsWith('/gdpr') || msg.text.split(' ')[0].endsWith('/privacy')) {
-		msg.reply.text("This bot saves according to your user settings some data. Please choose accordingly.\nIf you decide you don't want to save any data more just run /iwanttodeletemymsgs.\nThe data will be gathered to show everybody what bigdata is capable of doing.\nIf you don't choose any settings and you are not /optin than no data of you will be saved. The data will be published to the gitlab from thevillage. You can download all the data. You can lookup the src on github:\nhttps://github.com/TheWildBear/bigDataTelgrambot.");
+		msg.reply.text("This bot saves according to your user settings some data. Please choose accordingly.\nIf you decide you don't want to save any data more just run /iwanttodeletemymsgs.\nThe data will be gathered to show everybody what bigdata is capable of doing.\nIf you don't choose any settings and you are not /optin than no data of you will be saved. The data will be published to the gitlab from thevillage. You can download all the data. You can lookup the src on github:\nhttps://github.com/TheWildBear/bigDataTelgrambot.", {parseMode: 'markdown', asReply: true});
 	}
 });
 
 //sends the license
 bot.on('/license', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/license')) {
-		msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\nCheckout the repo at:\nhttps://github.com/TheWildBear/bigDataTelgrambot\n\nCopyright 2018 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', {
-			parseMode: 'markdown',
-			asReply: true
-		});
+		msg.reply.text('Welcome!\nThis bot is from @thewildbear.\nHe is awsome!\nCheckout his github\nhttps://github.com/TheWildBear\nCheckout the repo at:\nhttps://github.com/TheWildBear/bigDataTelgrambot\n\nCopyright 2018 TheWildBear\nThis bot is licensed under the MIT License!\nSpread the love for free Software!', {parseMode: 'markdown', asReply: true});
 		if (logging == 1) {
 			log("License sent");
 		}
@@ -80,9 +77,7 @@ bot.on('/license', (msg) => {
 bot.on(['/start', '/help'], (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/start') || msg.text.split(' ')[0].endsWith('/help')) {
 		let startmsg = "Commands:\n/optin (agree to collecting your messages)\n/optout (disable collection)\n/checklogging (check collection status)\n/total_amount (total amount of messages collected)\n/total_ownamount (number of your collected messages)\n/iwanttodeletemymsgs (remove all collected data from the DB)\n\nThis bot collects data which will be used in the future for analysis and learning big data. It's opt in and does not collect any data if you are opted out. I would appreciate if you would donate me you're data!\nP.S. All data is anonymized. The version now running is: " + version;
-		return msg.reply.text(startmsg, {
-			asReply: true
-		});
+		return msg.reply.text(startmsg, {parseMode: 'markdown', asReply: true});
 		if (logging == 1) {
 			log("/start || /help sent");
 		}
@@ -93,9 +88,7 @@ bot.on('/ping', (msg) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/ping')) {
 		let timediff = Date.now()/1000 - msg.date;
 		log(timediff);
-		msg.reply.text("Pong, Pung, Ping! Ente!!!! FOOOOOOOSSS!!!\n\nThe message was recieved with a timediff of: " + timediff, {
-			asReply: true
-		});
+		msg.reply.text("Pong, Pung, Ping! Ente!!!! FOOOOOOOSSS!!!\n\nThe message was recieved with a timediff of: " + timediff, {parseMode: 'markdown', asReply: true});
 		if (logging == 1) {
 			log("/ping sent");
 		}
@@ -104,10 +97,10 @@ bot.on('/ping', (msg) => {
 
 bot.on('/info', (msg, data, props) => {
 	if (msg.text.split(' ')[0].endsWith(botname) || msg.text.split(' ')[0].endsWith('/info')) {
-		msg.reply.text(util.inspect(msg, true, null));
-		msg.reply.text(util.inspect(data, true, null));
-		msg.reply.text(util.inspect(props, false, null));
-		bot.sendMessage(msg.from.id, "Your hashed id is: " + hash(msg.from.id) + ". Your unhashed id is: " + msg.from.id);
+		msg.reply.text(util.inspect(msg, true, null), {parseMode: 'markdown', asReply: true});
+		msg.reply.text(util.inspect(data, true, null), {parseMode: 'markdown', asReply: true});
+		msg.reply.text(util.inspect(props, false, null), {parseMode: 'markdown', asReply: true});
+		bot.sendMessage(msg.from.id, "Your hashed id is: " + hash(msg.from.id) + ". Your unhashed id is: " + msg.from.id, {parseMode: 'markdown', asReply: true});
 		
 	}
 });
@@ -130,8 +123,8 @@ bot.on('reconnected', (reconnected) => {
 
 bot.on('/commands', (msg) => {
 	let commandlist = "/gdpr, /license, /start, /ping, /info, /updateuserinfo, /optin, /optin1, /optin2, /optout, /iwanttodeletemymsgs, /checklogging, /total_amount, /total_ownamount, /ownamount, /subscribe, /unsubscribe, /wordlist, /getdataperday, /getdata, /topingroup1week, /topingroup, /top1week, /toptoday, /top, /count1week, /count, /ownamount, /total_ownamount, /total_amount, /checklogging";
-	msg.reply.text("Here is a list of all commands :D");
-	msg.reply.text(commandlist);
+	msg.reply.text("Here is a list of all commands :D", {parseMode: 'markdown', asReply: true});
+	msg.reply.text(commandlist, {parseMode: 'markdown', asReply: true});
 });
 
 
@@ -182,7 +175,7 @@ bot.on('/optin', (msg) => {
         	bot.inlineButton('delete this msg', {callback: 'deletemsg'})
         ]
     ]);
-	msg.reply.text("When you use State 0 only the text of the msg you write gets logged.\nWhen you use State 1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use State 2 additonally to State 1 your username is safed for use in /top commands", {replyMarkup});
+	msg.reply.text("When you use State 0 only the text of the msg you write gets logged.\nWhen you use State 1  msgid, userid, groupid, text, chattype gets logged.\nWhen you use State 2 additonally to State 1 your username is safed for use in /top commands", {parseMode: 'markdown', asReply: true});;
 });
 
 function optin(userid, state, username, msg)
@@ -204,9 +197,7 @@ function optin(userid, state, username, msg)
 			}else{
 				userinfo = msg.from.first_name + " " + msg.from.last_name;
 			}
-			bot.sendMessage(msg.message.chat.id, userinfo + " opted in for data collection in state: " + state + ". Thank you!", {
-				asReply: true
-			});
+			bot.sendMessage(msg.message.chat.id, userinfo + " opted in for data collection in state: " + state + ". Thank you!", {parseMode: 'markdown', asReply: true});
 			connection.release();
 		});
 	});
@@ -240,14 +231,14 @@ bot.on('/sqlread', (msg) => {
 			connection.query(command, function(err, result) {
 				if (err) throw err;
 				log(util.inspect(result,false,null));
-				msg.reply.text(util.inspect(result,false,null));
+				msg.reply.text(util.inspect(result,false,null), {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
 	}
 	else{
 		log("userid: " + msg.from.id + " with username: " + msg.from.username + " tried to access without rights");
-		msg.reply.text("Your not authorized for this action!");
+		msg.reply.text("Your not authorized for this action!", {parseMode: 'markdown', asReply: true});
 	}
 });
 
@@ -266,7 +257,7 @@ bot.on('/iwanttodeletemymsgs', (msg) => {
             bot.inlineButton('No', {callback: 'deletemsg'})
         ]
     ]);
-	return msg.reply.text('Do you really wanna delete all your data?', {replyMarkup});
+	return msg.reply.text('Do you really wanna delete all your data?', {parseMode: 'markdown', asReply: true});
 });
 
 function deleteallmymsgs(id){
@@ -302,9 +293,7 @@ bot.on('/checklogging', (msg) => {
 			connection.query(sqlcmd, [values], function(err, rows) {
 				if (err) throw err;
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("Your current status is: " + util.inspect(rows[0].logging, false, null) + " with the logging level of: " + rows[0].state, {
-					asReply: true
-				});
+				msg.reply.text("Your current status is: " + util.inspect(rows[0].logging, false, null) + " with the logging level of: " + rows[0].state, {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -323,9 +312,7 @@ bot.on('/total_amount', (msg) => {
 					log(util.inspect(rows[0].amount, false, null));
 				}
 				bot.deleteMessage(msg.chat.id, msg.message_id);
-				msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount, false, null), {
-					asReply: true
-				});
+				msg.reply.text("The current amount of overall msgs is: " + util.inspect(rows[0].amount, false, null), {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -346,9 +333,7 @@ bot.on('/total_ownamount', (msg) => {
 				if (logging == 1) {
 					log(util.inspect(rows[0].amount, false, null));
 				}
-				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
-					asReply: true
-				});
+				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -372,9 +357,7 @@ bot.on('/ownamount', (msg) => {
 				if (logging == 1) {
 					log(util.inspect(rows[0].amount, false, null));
 				}
-				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {
-					asReply: true
-				});
+				msg.reply.text("Your current  amount of your own msgs is: " + util.inspect(rows[0].amount, false, null) + " and the AVG_length is: " + rows[0].AVG_Length, {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -398,9 +381,7 @@ bot.on(/^\/count (.+)$/, (msg, props) => {
 				if (logging == 1) {
 					log(util.inspect(rows[0].AVG_Length, false, null));
 				}
-				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length + " characters.",{
-					asReply: true
-				});
+				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length + " characters.", {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -422,9 +403,7 @@ bot.on(/^\/count1week (.+)$/, (msg, props) => {
 				if (logging == 1) {
 					log(util.inspect(rows[0].AVG_Length, false, null));
 				}
-				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, {
-					asReply: true
-				});
+				msg.reply.text("Your selected amount of msgs is: " + rows[0].text + " and the average length of the message it is used in is: " + rows[0].AVG_Length, {parseMode: 'markdown', asReply: true});
 				connection.release();
 			});
 		});
@@ -443,7 +422,7 @@ bot.on('/stats', (msg) =>{
 				for(var i in rows){
 					result = result + rows[i].Day + " | " + rows[i].Amount + "\n";
 				}
-				msg.reply.text(result);
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 			});
 			connection.release();
 		});
@@ -487,9 +466,7 @@ bot.on('/top', (msg) => {
 				if (msg.chat.type != "private") {
 					bot.deleteMessage(msg.chat.id, msg.message_id);
 				}
-				msg.reply.text(result, {
-					parseMode: 'markdown'
-				});
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 				connection.release();
 				if (logging == 1) {
 					log(result);
@@ -527,9 +504,7 @@ bot.on('/toptoday', (msg) => {
 				if (msg.chat.type != "private") {
 					bot.deleteMessage(msg.chat.id, msg.message_id);
 				}
-				msg.reply.text(result, {
-					parseMode: 'markdown'
-				});
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 				connection.release();
 				if (logging == 1) {
 					log(result);
@@ -564,10 +539,7 @@ bot.on('/top1week', (msg) => {
 					result = result + "\n";
 				}
 				result = result + "\nIf you want you're name to show up use: /optin1 or lower";
-				msg.reply.text(result, {
-					parseMode: 'markdown',
-					asReply: true
-				});
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 				connection.release();
 				if (logging == 1) {
 					log(result);
@@ -596,9 +568,7 @@ bot.on('/topingroup', (msg) => {
 					result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
-				msg.reply.text(result, {
-					asReply: true
-				});
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 				connection.release();
 				if (logging == 1) {
 					log(result);
@@ -627,9 +597,7 @@ bot.on('/topingroup1week', (msg) => {
 					result = result + i + ". Messages: " + rows[i].Msgs + "\t\tUser: " + rows[i].User + "\t\tAVG_Length: " + rows[i].AVG_Length;
 					result = result + "\n";
 				}
-				msg.reply.text(result, {
-					asReply: true
-				});
+				msg.reply.text(result, {parseMode: 'markdown', asReply: true});
 				connection.release();
 				if (logging == 1) {
 					log(result);
@@ -826,7 +794,7 @@ bot.on('/subscribe', (msg) => {
 	dbwrite.getConnection(function(err, connection) {
 		connection.query(sqlcmd, [values], function(err, result) {
 			if (err) throw err;
-			msg.reply.text("You successfully subscribed! Of course your real userid has to be saved for that. It will not be exported to anywhere! If you don't want this service anymore run /unsubscribe");
+			msg.reply.text("You successfully subscribed! Of course your real userid has to be saved for that. It will not be exported to anywhere! If you don't want this service anymore run /unsubscribe", {parseMode: 'markdown', asReply: true});
 			connection.release();
 		});
 	});
@@ -840,9 +808,7 @@ bot.on('/unsubscribe', (msg) => {
 		connection.query(sqlcmd, [values], function(err, result) {
 			if (err) throw err;
 			bot.deleteMessage(msg.chat.id, msg.message_id);
-			msg.reply.text("You successfully unsubscribed! Your userid has been deleted from this list!", {
-				asReply: true
-			});
+			msg.reply.text("You successfully unsubscribed! Your userid has been deleted from this list!", {parseMode: 'markdown', asReply: true});
 			connection.release();
 		});
 	});
@@ -904,13 +870,13 @@ bot.on('/test', (msg) => {
         [bot.button('contact', 'Your contact'), bot.button('location', 'Your location')],
         ['/back', '/hide']
     ], {resize: true});
-	return bot.sendMessage(msg.from.id, "Test", {replyMarkup});
+	return bot.sendMessage(msg.from.id, "Test", {parseMode: 'markdown', asReply: true});
 });
 
 //Hide keyboard
 bot.on('/hide', msg => {
     return bot.sendMessage(
-        msg.from.id, 'Hide keyboard example. Type /back to show.', {replyMarkup: 'hide'}
+        msg.from.id, 'Hide keyboard example. Type /back to show.', {parseMode: 'markdown', asReply: true}
     );
 });
 
