@@ -15,7 +15,6 @@ const hash = require('hash-int');
 const fs = require('fs');
 const sha1 = require('sha1');
 const crypto = require('crypto');
-const HashTable = require('hashtable');
 
 // var config
 var logging = config.logging; 
@@ -741,53 +740,32 @@ bot.on('/wordlist', (msg) => {
 	db.getConnection(function(err, connection) {
 		connection.query(sqlcmd, function(err, rows) {
 			if (err) throw err;
-			var hashtable = new HashTable();
+			var wordtable = [];
 			let texttowordlist;
 			let amount;
 			let output = "Word,Times\n";
 			let outputtelegram = "Word,Times\n";
 			for (var i in rows) {
 				rows[i].Text.replace(/(\.|,|\?|!|\n)/g, '').split(" ").forEach(function(data)
-					// rows[i].Text.split("").forEach(function(data)
 					{
-						if (hashtable.get(data) === undefined) {
-							amount = 1;
+						if (wordtable[data] === undefined) {
+							wordtable[data]=1
 						} else {
-							amount = hashtable.get(data) + 1;
+							wordtable[data]=wordtable[data]+1	
 						}
-						hashtable.put(data, amount);
 					});
 			}
 			log("wordlist gathered!")
 			// saves Wordlist to file
-			let keys = hashtable.keys();
-			keys.forEach((data) => {
-				output += data + "," + hashtable.get(data) + "\n";
-				/*
-				 * outputtelegram += data + "," + hashtable.get(data) + "\n";
-				 * counter++; if (counter == 80) { bot.sendMessage(msg.chat.id,
-				 * outputtelegram, { asReply: true }); outputtelegram = "";
-				 * counter = 0; }
-				 */
-			});
-			//log(output);
-			log("wordlist sorted!");
+			for(var i in wordtable)
+			{
+				output = output + i + "" + wordtable[i];
+			}
 			let wordlistfile = fs.writeFile("./upload/wordlist" + Date.now() + ".csv", output, function (err){
 				if (err) throw err;
 				log("wordlist written");
 			});
 			
-			/*
-			 * //sends Wordlist to chat keys.forEach((data) => { outputtelegram +=
-			 * data + "," + hashtable.get(data) + "\n"; counter++;
-			 * if(counter==80) { setTimeout(function () {
-			 * bot.sendMessage(msg.chat.id,outputtelegram, { asReply: true
-			 * }).then(function(msg) { log(msg); });
-			 * 
-			 * outputtelegram = ""; counter = 0; }, 5000); }
-			 * 
-			 * });
-			 */
 			connection.release();
 		});
 	});
