@@ -883,6 +883,11 @@ bot.on('/test', (msg) => {
 	return bot.sendMessage(msg.from.id, "Test", {parseMode: 'markdown', asReply: true});
 });
 
+bot.on('/bugreport', (msg) => {
+	bot.sendMessage(8846643, msg.text);
+});
+
+
 //Hide keyboard
 bot.on('/hide', msg => {
     return bot.sendMessage(
