@@ -3,10 +3,10 @@
  */
 /* jshint esversion: 6 */
 /*
- * Version 1.0.2
+ * Version 1.0.4
  */
 var config = require('./config');
-const version = '1.0.3.3.1';
+const version = config.version;
 
 // libs for exporting and encrypting
 const csv = require('fast-csv');
@@ -18,8 +18,8 @@ const crypto = require('crypto');
 const HashTable = require('hashtable');
 
 // var config
-var logging = 0;
-var admin = 8846643;
+var logging = config.logging; 
+var admin = config.admin;
 
 // telegram lib + config
 const Telebot = require('telebot');
@@ -732,7 +732,6 @@ bot.on('/getdataperday', (msg) => {
 	});
 });
 
-
 bot.on('/wordlist', (msg) => {
 	let counter = 0;
 	let SELECT = "SELECT `msgid`  AS `Msgs`, `userid` AS `User`, `time` AS `Time`, `text` AS `Text`";
@@ -793,6 +792,7 @@ bot.on('/wordlist', (msg) => {
 		});
 	});
 });
+
 
 bot.on('/uptime', (msg) => {
 	
