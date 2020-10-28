@@ -122,7 +122,7 @@ bot.on('reconnected', (reconnected) => {
 //commandlist :D
 
 bot.on('/commands', (msg) => {
-	let commandlist = "/gdpr, /license, /start, /ping, /info, /updateuserinfo, /optin, /optin1, /optin2, /optout, /iwanttodeletemymsgs, /checklogging, /total_amount, /total_ownamount, /ownamount, /subscribe, /unsubscribe, /wordlist, /getdataperday, /getdata, /topingroup1week, /topingroup, /top1week, /toptoday, /top, /count1week, /count, /ownamount, /total_ownamount, /total_amount, /checklogging";
+	let commandlist = "/gdpr, /license, /start, /ping, /info, /updateuserinfo, /optin, /optin1, /optin2, /optout, /iwanttodeletemymsgs, /checklogging, /total_amount, /total_ownamount, /ownamount, /subscribe, /unsubscribe, /wordlist, /getdataperday, /getdata, /topingroup1week, /topingroup, /top1week, /toptoday, /top, /count1week, /count, /ownamount, /total_ownamount, /total_amount, /checklogging, /bugreport";
 	msg.reply.text("Here is a list of all commands :D", {parseMode: 'markdown', asReply: true});
 	msg.reply.text(commandlist, {parseMode: 'markdown', asReply: true});
 });
